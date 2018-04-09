@@ -1,6 +1,7 @@
 //! 日付
 use chrono::{Datelike, NaiveDate, Weekday};
 
+use definition;
 use self::KoyomiError::*;
 
 #[derive(Debug)]
@@ -34,7 +35,17 @@ impl Date {
     }
 
     pub fn weekday(&self) -> String {
-        let weekday = match self.date.weekday() {
+        self.date.weekday().to_japanese()
+    }
+
+    pub fn holiday(&self) -> Option<String> {
+        definition::holiday(self)
+    }
+}
+
+impl JapaneseWeekday for Weekday {
+    fn to_japanese(&self) -> String {
+        let weekday = match *self {
             Weekday::Mon => "月",
             Weekday::Tue => "火",
             Weekday::Wed => "水",
@@ -44,8 +55,12 @@ impl Date {
             Weekday::Sun => "日",
         };
 
-        weekday.to_owned()
+        weekday.into()
     }
+}
+
+trait JapaneseWeekday {
+    fn to_japanese(&self) -> String;
 }
 
 #[cfg(test)]
@@ -125,5 +140,17 @@ mod tests {
     fn saturday_of_date() {
         let date = Date::parse("2018-04-07").unwrap();
         assert_eq!(date.weekday(), "土");
+    }
+
+    #[test]
+    fn holiday() {
+        let date = Date::parse("2018-01-01").unwrap();
+        assert_eq!(date.holiday(), Some("元日".into()))
+    }
+
+    #[test]
+    fn not_holiday() {
+        let date = Date::parse("2018-01-02").unwrap();
+        assert_eq!(date.holiday(), None);
     }
 }
