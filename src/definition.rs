@@ -23,7 +23,7 @@ const HOLIDAYS: [(&str, u32, u32, i32, Option<i32>); 16] = [
     ("体育の日", 10, 10, 1966, Some(1999)),
     ("文化の日", 11, 3, 1948, None),
     ("勤労感謝の日", 11, 23, 1948, None),
-    ("天皇誕生日", 12, 23, 1989, Some(2019)),
+    ("天皇誕生日", 12, 23, 1989, Some(2018)),
 ];
 
 /// 指定日が祝祭日であるか判断する
@@ -102,7 +102,7 @@ mod tests {
         assert_eq!(holiday(&d), Some(name.into()));
 
         let d = Date::parse("2019-12-23").unwrap();
-        assert_eq!(holiday(&d), Some(name.into()));
+        assert_eq!(holiday(&d), None);
 
         let d = Date::parse("1988-12-23").unwrap();
         assert_eq!(holiday(&d), None);
