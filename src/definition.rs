@@ -26,8 +26,13 @@ const HOLIDAYS: [(&str, u32, u32, i32, Option<i32>); 16] = [
     ("天皇誕生日", 12, 23, 1989, Some(2018)),
 ];
 
-/// 指定日が祝祭日であるか判断する
+/// 指定日が祝祭日・振替休日であるか判定する
 pub fn holiday(date: &Date) -> Option<String> {
+    substitude_holiday(date).or(defined_holiday(date))
+}
+
+/// 指定日が祝祭日であるか判定する
+fn defined_holiday(date: &Date) -> Option<String> {
     HOLIDAYS
         .iter()
         .filter(|h| match h.4 {
@@ -37,6 +42,21 @@ pub fn holiday(date: &Date) -> Option<String> {
         .filter(|h| date.month() == h.1 && date.day() == h.2)
         .nth(0)
         .map(|h| h.0.to_owned())
+}
+
+/// 指定日が振替休日であるか判定する
+fn substitude_holiday(date: &Date) -> Option<String> {
+    if date.year() < 1973 || date.weekday() != "月" {
+        return None;
+    }
+
+    match date.prev() {
+        Some(yesterday) => match defined_holiday(&yesterday) {
+            Some(_) => Some("振替休日".into()),
+            None => None,
+        },
+        None => None,
+    }
 }
 
 #[cfg(test)]
@@ -249,5 +269,11 @@ mod tests {
 
         let d = Date::parse("1947-11-23").unwrap();
         assert_eq!(holiday(&d), None);
+    }
+
+    #[test]
+    fn substitude_holiday() {
+        let d = Date::parse("2018-04-30").unwrap();
+        assert_eq!(holiday(&d), Some("振替休日".into()));
     }
 }

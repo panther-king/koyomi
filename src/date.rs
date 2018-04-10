@@ -1,5 +1,5 @@
 //! 日付
-use chrono::{Datelike, NaiveDate, Weekday};
+use chrono::{Datelike, Duration, NaiveDate, Weekday};
 
 use definition;
 use self::KoyomiError::*;
@@ -40,6 +40,12 @@ impl Date {
 
     pub fn holiday(&self) -> Option<String> {
         definition::holiday(self)
+    }
+
+    pub fn prev(&self) -> Option<Self> {
+        self.date
+            .checked_sub_signed(Duration::days(1))
+            .map(|prev| Date { date: prev })
     }
 }
 
@@ -152,5 +158,13 @@ mod tests {
     fn not_holiday() {
         let date = Date::parse("2018-01-02").unwrap();
         assert_eq!(date.holiday(), None);
+    }
+
+    #[test]
+    fn yesterday() {
+        let date = Date::parse("2018-01-01").unwrap().prev().unwrap();
+        assert_eq!(date.year(), 2017);
+        assert_eq!(date.month(), 12);
+        assert_eq!(date.day(), 31);
     }
 }
