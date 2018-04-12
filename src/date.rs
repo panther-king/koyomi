@@ -1,91 +1,112 @@
 //! 日付
-use chrono::{Datelike, Duration, NaiveDate, Weekday};
+use chrono::{Datelike, NaiveDate, Weekday};
 
-use definition;
 use self::KoyomiError::*;
 
 #[derive(Debug)]
 pub enum KoyomiError {
     InvalidDate(String),
+    NoTomorrow(i32, u32, u32),
+    NoYesterday(i32, u32, u32),
 }
 
 #[derive(Debug)]
 pub struct Date {
-    date: NaiveDate,
+    year: i32,
+    month: u32,
+    day: u32,
+    weekday: Weekday,
 }
 
 impl Date {
     pub fn parse(fmt: &str) -> Result<Self, KoyomiError> {
         NaiveDate::parse_from_str(fmt, "%Y-%m-%d")
             .or(NaiveDate::parse_from_str(fmt, "%Y/%m/%d"))
-            .map(|date| Date { date: date })
             .map_err(|_| InvalidDate(fmt.into()))
+            .map(|d| Date::from_chrono(d))
+    }
+
+    pub fn from_ymd(year: i32, month: u32, day: u32) -> Result<Self, KoyomiError> {
+        let ymd = format!("{:<4}-{:<02}-{:<02}", year, month, day);
+        Date::parse(&ymd)
     }
 
     pub fn year(&self) -> i32 {
-        self.date.year()
+        self.year
     }
 
     pub fn month(&self) -> u32 {
-        self.date.month()
+        self.month
     }
 
     pub fn day(&self) -> u32 {
-        self.date.day()
+        self.day
     }
 
     pub fn weekday(&self) -> String {
-        self.date.weekday().to_japanese()
+        match self.weekday {
+            Weekday::Mon => "月".into(),
+            Weekday::Tue => "火".into(),
+            Weekday::Wed => "水".into(),
+            Weekday::Thu => "木".into(),
+            Weekday::Fri => "金".into(),
+            Weekday::Sat => "土".into(),
+            Weekday::Sun => "日".into(),
+        }
     }
 
-    pub fn holiday(&self) -> Option<String> {
-        definition::holiday(self)
+    pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
+        NaiveDate::from_ymd(self.year, self.month, self.day)
+            .succ_opt()
+            .ok_or(NoTomorrow(self.year, self.month, self.day))
+            .map(|d| Date::from_chrono(d))
     }
 
-    pub fn prev(&self) -> Option<Self> {
-        self.date
-            .checked_sub_signed(Duration::days(1))
-            .map(|prev| Date { date: prev })
+    pub fn yesterday(&self) -> Result<Self, KoyomiError> {
+        NaiveDate::from_ymd(self.year, self.month, self.day)
+            .pred_opt()
+            .ok_or(NoYesterday(self.year, self.month, self.day))
+            .map(|d| Date::from_chrono(d))
     }
-}
 
-impl JapaneseWeekday for Weekday {
-    fn to_japanese(&self) -> String {
-        let weekday = match *self {
-            Weekday::Mon => "月",
-            Weekday::Tue => "火",
-            Weekday::Wed => "水",
-            Weekday::Thu => "木",
-            Weekday::Fri => "金",
-            Weekday::Sat => "土",
-            Weekday::Sun => "日",
-        };
-
-        weekday.into()
+    fn from_chrono(date: NaiveDate) -> Self {
+        Date {
+            year: date.year(),
+            month: date.month(),
+            day: date.day(),
+            weekday: date.weekday(),
+        }
     }
-}
-
-trait JapaneseWeekday {
-    fn to_japanese(&self) -> String;
 }
 
 #[cfg(test)]
 mod tests {
+    use chrono::naive::{MAX_DATE, MIN_DATE};
     use super::*;
 
     #[test]
-    fn parse_with_hyphen_format() {
+    fn parse_hyphen_format() {
         assert!(Date::parse("2018-01-01").is_ok());
     }
 
     #[test]
-    fn parse_with_slash_format() {
+    fn parse_slash_format() {
         assert!(Date::parse("2018/01/01").is_ok());
     }
 
     #[test]
-    fn parse_with_invalid_format() {
+    fn parse_invalid_format() {
         assert!(Date::parse("2018 01 01").is_err());
+    }
+
+    #[test]
+    fn valid_ymd() {
+        assert!(Date::from_ymd(2018, 1, 1).is_ok());
+    }
+
+    #[test]
+    fn invalid_ymd() {
+        assert!(Date::from_ymd(2018, 13, 1).is_err());
     }
 
     #[test]
@@ -107,64 +128,68 @@ mod tests {
     }
 
     #[test]
-    fn sunday_of_date() {
-        let date = Date::parse("2018-04-01").unwrap();
-        assert_eq!(date.weekday(), "日");
-    }
-
-    #[test]
-    fn monday_of_date() {
-        let date = Date::parse("2018-04-02").unwrap();
+    fn monday_of_weekday() {
+        let date = Date::parse("2018-01-01").unwrap();
         assert_eq!(date.weekday(), "月");
     }
 
     #[test]
-    fn tuesday_of_date() {
-        let date = Date::parse("2018-04-03").unwrap();
+    fn tuesday_of_weekday() {
+        let date = Date::parse("2018-01-02").unwrap();
         assert_eq!(date.weekday(), "火");
     }
 
     #[test]
-    fn wednesday_of_date() {
-        let date = Date::parse("2018-04-04").unwrap();
+    fn wednesday_of_weekday() {
+        let date = Date::parse("2018-01-03").unwrap();
         assert_eq!(date.weekday(), "水");
     }
 
     #[test]
-    fn thursday_of_date() {
-        let date = Date::parse("2018-04-05").unwrap();
+    fn thursday_of_weekday() {
+        let date = Date::parse("2018-01-04").unwrap();
         assert_eq!(date.weekday(), "木");
     }
 
     #[test]
-    fn friday_of_date() {
-        let date = Date::parse("2018-04-06").unwrap();
+    fn friday_of_weekday() {
+        let date = Date::parse("2018-01-05").unwrap();
         assert_eq!(date.weekday(), "金");
     }
 
     #[test]
-    fn saturday_of_date() {
-        let date = Date::parse("2018-04-07").unwrap();
+    fn saturday_of_weekday() {
+        let date = Date::parse("2018-01-06").unwrap();
         assert_eq!(date.weekday(), "土");
     }
 
     #[test]
-    fn holiday() {
-        let date = Date::parse("2018-01-01").unwrap();
-        assert_eq!(date.holiday(), Some("元日".into()))
+    fn sunday_of_weekday() {
+        let date = Date::parse("2018-01-07").unwrap();
+        assert_eq!(date.weekday(), "日");
     }
 
     #[test]
-    fn not_holiday() {
-        let date = Date::parse("2018-01-02").unwrap();
-        assert_eq!(date.holiday(), None);
+    fn valid_tomorrow() {
+        let date = Date::parse("2018-12-24").unwrap();
+        assert!(date.tomorrow().is_ok());
     }
 
     #[test]
-    fn yesterday() {
-        let date = Date::parse("2018-01-01").unwrap().prev().unwrap();
-        assert_eq!(date.year(), 2017);
-        assert_eq!(date.month(), 12);
-        assert_eq!(date.day(), 31);
+    fn invalid_tomorrow() {
+        let date = Date::parse(&MAX_DATE.format("%Y-%m-%d").to_string()).unwrap();
+        assert!(date.tomorrow().is_err());
+    }
+
+    #[test]
+    fn valid_yesterday() {
+        let date = Date::parse("2018-12-24").unwrap();
+        assert!(date.yesterday().is_ok());
+    }
+
+    #[test]
+    fn invalid_yesterday() {
+        let date = Date::parse(&MIN_DATE.format("%Y-%m-%d").to_string()).unwrap();
+        assert!(date.yesterday().is_err());
     }
 }
