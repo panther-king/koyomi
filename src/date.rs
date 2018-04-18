@@ -1,4 +1,6 @@
 //! 日付
+use std::cmp::Ordering;
+
 use chrono::{Datelike, NaiveDate, Weekday};
 
 use self::KoyomiError::*;
@@ -10,7 +12,7 @@ pub enum KoyomiError {
     NoYesterday(i32, u32, u32),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Date {
     year: i32,
     month: u32,
@@ -76,6 +78,26 @@ impl Date {
             day: date.day(),
             weekday: date.weekday(),
         }
+    }
+}
+
+impl Ord for Date {
+    fn cmp(&self, other: &Date) -> Ordering {
+        match self.year.cmp(&other.year) {
+            Ordering::Equal => match self.month.cmp(&other.month) {
+                Ordering::Equal => self.day.cmp(&other.day),
+                Ordering::Greater => Ordering::Greater,
+                Ordering::Less => Ordering::Less,
+            },
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Less => Ordering::Less,
+        }
+    }
+}
+
+impl PartialOrd for Date {
+    fn partial_cmp(&self, other: &Date) -> Option<Ordering> {
+        Some(self.cmp(&other))
     }
 }
 
@@ -191,5 +213,58 @@ mod tests {
     fn invalid_yesterday() {
         let date = Date::parse(&MIN_DATE.format("%Y-%m-%d").to_string()).unwrap();
         assert!(date.yesterday().is_err());
+    }
+
+    #[test]
+    fn date_equal() {
+        let d1 = Date::parse("2018-04-01").unwrap();
+        let d2 = Date::parse("2018-04-01").unwrap();
+        assert!(d1 == d2);
+    }
+
+    #[test]
+    fn date_greater() {
+        let d1 = Date::parse("2018-04-10").unwrap();
+        let d2 = Date::parse("2017-04-10").unwrap();
+        assert!(d1 > d2);
+
+        let d2 = Date::parse("2018-03-20").unwrap();
+        assert!(d1 > d2);
+
+        let d2 = Date::parse("2018-04-01").unwrap();
+        assert!(d1 > d2);
+    }
+
+    #[test]
+    fn date_greater_than() {
+        let d1 = Date::parse("2018-04-10").unwrap();
+        let d2 = Date::parse("2018-04-10").unwrap();
+        assert!(d1 >= d2);
+
+        let d2 = Date::parse("2018-04-01").unwrap();
+        assert!(d1 >= d2);
+    }
+
+    #[test]
+    fn date_less() {
+        let d1 = Date::parse("2018-04-10").unwrap();
+        let d2 = Date::parse("2019-04-10").unwrap();
+        assert!(d1 < d2);
+
+        let d2 = Date::parse("2018-05-10").unwrap();
+        assert!(d1 < d2);
+
+        let d2 = Date::parse("2018-04-20").unwrap();
+        assert!(d1 < d2);
+    }
+
+    #[test]
+    fn date_less_than() {
+        let d1 = Date::parse("2018-04-10").unwrap();
+        let d2 = Date::parse("2018-04-10").unwrap();
+        assert!(d1 <= d2);
+
+        let d2 = Date::parse("2018-04-20").unwrap();
+        assert!(d1 <= d2);
     }
 }
