@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 
 use chrono::{Datelike, NaiveDate, Weekday};
 
+use definition;
 use self::KoyomiError::*;
 
 #[derive(Debug)]
@@ -55,6 +56,10 @@ impl Date {
             Weekday::Sat => "土".into(),
             Weekday::Sun => "日".into(),
         }
+    }
+
+    pub fn era(&self) -> Option<definition::Era> {
+        definition::era(&self)
     }
 
     pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
