@@ -19,7 +19,7 @@ pub fn era(date: &Date) -> Option<Era> {
             from,
             until,
         };
-        if era.is_match(&date) {
+        if era.is_match(date) {
             return Some(era);
         }
     }

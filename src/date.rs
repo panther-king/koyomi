@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 
 use chrono::{Datelike, NaiveDate, Weekday};
 
-use definition;
+use era;
 use self::KoyomiError::*;
 
 #[derive(Debug)]
@@ -58,8 +58,8 @@ impl Date {
         }
     }
 
-    pub fn era(&self) -> Option<definition::Era> {
-        definition::era(&self)
+    pub fn era(&self) -> Option<era::Era> {
+        era::era(self)
     }
 
     pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
