@@ -1,16 +1,59 @@
 //! 日付
 use std::cmp::Ordering;
+use std::ops::Deref;
 
-use chrono::{Datelike, NaiveDate, Weekday};
+use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
 
 use era;
 use self::KoyomiError::*;
+use self::Weekday::*;
 
 #[derive(Debug)]
 pub enum KoyomiError {
     InvalidDate(String),
     NoTomorrow(i32, u32, u32),
     NoYesterday(i32, u32, u32),
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum Weekday {
+    Monday,
+    Tuesday,
+    Wednesday,
+    Thursday,
+    Friday,
+    Saturday,
+    Sunday,
+}
+
+impl Deref for Weekday {
+    type Target = char;
+
+    fn deref(&self) -> &char {
+        match *self {
+            Monday => &'月',
+            Tuesday => &'火',
+            Wednesday => &'水',
+            Thursday => &'木',
+            Friday => &'金',
+            Saturday => &'土',
+            Sunday => &'日',
+        }
+    }
+}
+
+impl From<ChronoWeekday> for Weekday {
+    fn from(weekday: ChronoWeekday) -> Self {
+        match weekday {
+            ChronoWeekday::Mon => Monday,
+            ChronoWeekday::Tue => Tuesday,
+            ChronoWeekday::Wed => Wednesday,
+            ChronoWeekday::Thu => Thursday,
+            ChronoWeekday::Fri => Friday,
+            ChronoWeekday::Sat => Saturday,
+            ChronoWeekday::Sun => Sunday,
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -46,16 +89,8 @@ impl Date {
         self.day
     }
 
-    pub fn weekday(&self) -> String {
-        match self.weekday {
-            Weekday::Mon => "月".into(),
-            Weekday::Tue => "火".into(),
-            Weekday::Wed => "水".into(),
-            Weekday::Thu => "木".into(),
-            Weekday::Fri => "金".into(),
-            Weekday::Sat => "土".into(),
-            Weekday::Sun => "日".into(),
-        }
+    pub fn weekday(&self) -> &Weekday {
+        &self.weekday
     }
 
     pub fn era(&self) -> Option<era::Era> {
@@ -81,7 +116,7 @@ impl Date {
             year: date.year(),
             month: date.month(),
             day: date.day(),
-            weekday: date.weekday(),
+            weekday: Weekday::from(date.weekday()),
         }
     }
 }
@@ -91,11 +126,9 @@ impl Ord for Date {
         match self.year.cmp(&other.year) {
             Ordering::Equal => match self.month.cmp(&other.month) {
                 Ordering::Equal => self.day.cmp(&other.day),
-                Ordering::Greater => Ordering::Greater,
-                Ordering::Less => Ordering::Less,
+                ord => ord,
             },
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Less => Ordering::Less,
+            ord => ord,
         }
     }
 }
@@ -110,6 +143,55 @@ impl PartialOrd for Date {
 mod tests {
     use chrono::naive::{MAX_DATE, MIN_DATE};
     use super::*;
+
+    #[test]
+    fn monday_of_weekday() {
+        let weekday = Weekday::from(ChronoWeekday::Mon);
+        assert_eq!(weekday, Monday);
+        assert_eq!(*weekday, '月');
+    }
+
+    #[test]
+    fn tuesday_of_weekday() {
+        let weekday = Weekday::from(ChronoWeekday::Tue);
+        assert_eq!(weekday, Tuesday);
+        assert_eq!(*weekday, '火');
+    }
+
+    #[test]
+    fn wednesday_of_weekday() {
+        let weekday = Weekday::from(ChronoWeekday::Wed);
+        assert_eq!(weekday, Wednesday);
+        assert_eq!(*weekday, '水');
+    }
+
+    #[test]
+    fn thursday_of_weekday() {
+        let weekday = Weekday::from(ChronoWeekday::Thu);
+        assert_eq!(weekday, Thursday);
+        assert_eq!(*weekday, '木');
+    }
+
+    #[test]
+    fn friday_of_weekday() {
+        let weekday = Weekday::from(ChronoWeekday::Fri);
+        assert_eq!(weekday, Friday);
+        assert_eq!(*weekday, '金');
+    }
+
+    #[test]
+    fn saturday_of_weekday() {
+        let weekday = Weekday::from(ChronoWeekday::Sat);
+        assert_eq!(weekday, Saturday);
+        assert_eq!(*weekday, '土');
+    }
+
+    #[test]
+    fn sunday_of_weekday() {
+        let weekday = Weekday::from(ChronoWeekday::Sun);
+        assert_eq!(weekday, Sunday);
+        assert_eq!(*weekday, '日');
+    }
 
     #[test]
     fn parse_hyphen_format() {
@@ -134,66 +216,6 @@ mod tests {
     #[test]
     fn invalid_ymd() {
         assert!(Date::from_ymd(2018, 13, 1).is_err());
-    }
-
-    #[test]
-    fn year_of_date() {
-        let date = Date::parse("2018-12-24").unwrap();
-        assert_eq!(date.year(), 2018);
-    }
-
-    #[test]
-    fn month_of_date() {
-        let date = Date::parse("2018-12-24").unwrap();
-        assert_eq!(date.month(), 12);
-    }
-
-    #[test]
-    fn day_of_date() {
-        let date = Date::parse("2018-12-24").unwrap();
-        assert_eq!(date.day(), 24);
-    }
-
-    #[test]
-    fn monday_of_weekday() {
-        let date = Date::parse("2018-01-01").unwrap();
-        assert_eq!(date.weekday(), "月");
-    }
-
-    #[test]
-    fn tuesday_of_weekday() {
-        let date = Date::parse("2018-01-02").unwrap();
-        assert_eq!(date.weekday(), "火");
-    }
-
-    #[test]
-    fn wednesday_of_weekday() {
-        let date = Date::parse("2018-01-03").unwrap();
-        assert_eq!(date.weekday(), "水");
-    }
-
-    #[test]
-    fn thursday_of_weekday() {
-        let date = Date::parse("2018-01-04").unwrap();
-        assert_eq!(date.weekday(), "木");
-    }
-
-    #[test]
-    fn friday_of_weekday() {
-        let date = Date::parse("2018-01-05").unwrap();
-        assert_eq!(date.weekday(), "金");
-    }
-
-    #[test]
-    fn saturday_of_weekday() {
-        let date = Date::parse("2018-01-06").unwrap();
-        assert_eq!(date.weekday(), "土");
-    }
-
-    #[test]
-    fn sunday_of_weekday() {
-        let date = Date::parse("2018-01-07").unwrap();
-        assert_eq!(date.weekday(), "日");
     }
 
     #[test]
