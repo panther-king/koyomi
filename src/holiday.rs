@@ -24,10 +24,14 @@ const HOLIDAY_FROM: i32 = 1948;
 
 const NATION_FROM: i32 = 1988;
 
+const ONE_WEEK: u32 = 7;
+
 const SUBSTITUTE_FROM: i32 = 1973;
 
 pub fn holiday(date: &Date) -> Option<String> {
-    defined_holiday(date).or(substitude_holiday(date))
+    defined_holiday(date)
+        .or(substitude_holiday(date))
+        .or(variable_coming_of_age(date))
 }
 
 fn defined_holiday(date: &Date) -> Option<String> {
@@ -46,6 +50,10 @@ fn defined_holiday(date: &Date) -> Option<String> {
         .map(|h| h.0.into())
 }
 
+fn is_second_week(day: u32) -> bool {
+    (day / ONE_WEEK == 2 && day % ONE_WEEK == 0) || (day / ONE_WEEK == 1 && day % ONE_WEEK > 0)
+}
+
 fn substitude_holiday(date: &Date) -> Option<String> {
     if date.year() < SUBSTITUTE_FROM {
         return None;
@@ -58,6 +66,26 @@ fn substitude_holiday(date: &Date) -> Option<String> {
         Ok(yesterday) => defined_holiday(&yesterday).map(|_| "振替休日".into()),
         Err(_) => None,
     }
+}
+
+fn variable_coming_of_age(date: &Date) -> Option<String> {
+    if date.month() != 1 {
+        return None;
+    }
+
+    if date.weekday() != &Weekday::Monday {
+        return None;
+    }
+
+    if date.year() <= HOLIDAYS[1].4.unwrap() {
+        return None;
+    }
+
+    if !is_second_week(date.day()) {
+        return None;
+    }
+
+    Some(HOLIDAYS[1].0.into())
 }
 
 #[cfg(test)]
@@ -86,6 +114,26 @@ mod tests {
         assert_eq!(holiday(&date).unwrap(), name);
 
         let date = Date::from_ymd(1947, 1, 15).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2000, 1, 15).unwrap();
+        assert!(holiday(&date).is_none());
+    }
+
+    #[test]
+    fn variable_coming_of_age() {
+        let name = "成人の日";
+
+        let date = Date::from_ymd(2000, 1, 10).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(1999, 1, 11).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2018, 1, 9).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2018, 3, 12).unwrap();
         assert!(holiday(&date).is_none());
     }
 
