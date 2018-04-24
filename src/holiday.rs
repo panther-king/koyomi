@@ -32,6 +32,7 @@ pub fn holiday(date: &Date) -> Option<String> {
     defined_holiday(date)
         .or(substitude_holiday(date))
         .or(variable_coming_of_age(date))
+        .or(variable_sports_day(date))
 }
 
 fn defined_holiday(date: &Date) -> Option<String> {
@@ -87,6 +88,26 @@ fn variable_coming_of_age(date: &Date) -> Option<String> {
     }
 
     Some(HOLIDAYS[1].0.into())
+}
+
+fn variable_sports_day(date: &Date) -> Option<String> {
+    if date.month() != 10 {
+        return None;
+    }
+
+    if date.weekday() != &Weekday::Monday {
+        return None;
+    }
+
+    if date.year() <= HOLIDAYS[12].4.unwrap() {
+        return None;
+    }
+
+    if !is_second_week(date.day()) {
+        return None;
+    }
+
+    Some(HOLIDAYS[12].0.into())
 }
 
 #[cfg(test)]
@@ -269,6 +290,23 @@ mod tests {
         assert!(holiday(&date).is_none());
 
         let date = Date::from_ymd(2000, 10, 10).unwrap();
+        assert!(holiday(&date).is_none());
+    }
+
+    #[test]
+    fn variable_sports_day() {
+        let name = "体育の日";
+
+        let date = Date::from_ymd(2000, 10, 9).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(1999, 10, 11).unwrap();
+        assert_ne!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(2018, 10, 9).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2018, 11, 12).unwrap();
         assert!(holiday(&date).is_none());
     }
 
