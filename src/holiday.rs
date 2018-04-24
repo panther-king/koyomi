@@ -32,6 +32,7 @@ pub fn holiday(date: &Date) -> Option<String> {
     defined_holiday(date)
         .or(substitude_holiday(date))
         .or(variable_coming_of_age(date))
+        .or(variable_marine_day(date))
         .or(variable_sports_day(date))
 }
 
@@ -53,6 +54,10 @@ fn defined_holiday(date: &Date) -> Option<String> {
 
 fn is_second_week(day: u32) -> bool {
     (day / ONE_WEEK == 2 && day % ONE_WEEK == 0) || (day / ONE_WEEK == 1 && day % ONE_WEEK > 0)
+}
+
+fn is_third_week(day: u32) -> bool {
+    (day / ONE_WEEK == 3) || (day / ONE_WEEK == 2 && day % ONE_WEEK > 1)
 }
 
 fn substitude_holiday(date: &Date) -> Option<String> {
@@ -88,6 +93,26 @@ fn variable_coming_of_age(date: &Date) -> Option<String> {
     }
 
     Some(HOLIDAYS[1].0.into())
+}
+
+fn variable_marine_day(date: &Date) -> Option<String> {
+    if date.month() != 7 {
+        return None;
+    }
+
+    if date.weekday() != &Weekday::Monday {
+        return None;
+    }
+
+    if date.year() <= HOLIDAYS[9].4.unwrap() {
+        return None;
+    }
+
+    if !is_third_week(date.day()) {
+        return None;
+    }
+
+    Some(HOLIDAYS[9].0.into())
 }
 
 fn variable_sports_day(date: &Date) -> Option<String> {
@@ -245,6 +270,23 @@ mod tests {
         assert!(holiday(&date).is_none());
 
         let date = Date::from_ymd(2003, 7, 20).unwrap();
+        assert!(holiday(&date).is_none());
+    }
+
+    #[test]
+    fn variable_marine_day() {
+        let name = "海の日";
+
+        let date = Date::from_ymd(2003, 7, 21).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(2002, 7, 15).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2018, 7, 17).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2018, 8, 20).unwrap();
         assert!(holiday(&date).is_none());
     }
 
