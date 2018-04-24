@@ -58,6 +58,7 @@ fn substitude_holiday(date: &Date) -> Option<String> {
     if date.year() < SUBSTITUTE_FROM {
         return None;
     }
+
     if date.weekday() != &Weekday::Monday {
         return None;
     }
