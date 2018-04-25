@@ -30,11 +30,16 @@ const SUBSTITUTE_FROM: i32 = 1973;
 
 pub fn holiday(date: &Date) -> Option<String> {
     defined_holiday(date)
+        // 振替休日(前日が日曜で祝日)
         .or(substitude_holiday(date))
-        .or(variable_coming_of_age(date))
-        .or(variable_marine_day(date))
-        .or(variable_respect_for_the_aged_day(date))
-        .or(variable_sports_day(date))
+        // 成人の日(1月第2月曜)
+        .or(variable_holiday(1, date, &is_second_week))
+        // 海の日(7月第3月曜)
+        .or(variable_holiday(9, date, &is_third_week))
+        // 敬老の日(9月第3月曜)
+        .or(variable_holiday(11, date, &is_third_week))
+        // 体育の日(10月第2月曜)
+        .or(variable_holiday(12, date, &is_second_week))
 }
 
 fn defined_holiday(date: &Date) -> Option<String> {
@@ -76,8 +81,8 @@ fn substitude_holiday(date: &Date) -> Option<String> {
     }
 }
 
-fn variable_coming_of_age(date: &Date) -> Option<String> {
-    if date.month() != 1 {
+fn variable_holiday(index: usize, date: &Date, week: &Fn(u32) -> bool) -> Option<String> {
+    if date.month() != HOLIDAYS[index].2 {
         return None;
     }
 
@@ -85,75 +90,15 @@ fn variable_coming_of_age(date: &Date) -> Option<String> {
         return None;
     }
 
-    if date.year() <= HOLIDAYS[1].4.unwrap() {
+    if date.year() <= HOLIDAYS[index].4.unwrap() {
         return None;
     }
 
-    if !is_second_week(date.day()) {
+    if !week(date.day()) {
         return None;
     }
 
-    Some(HOLIDAYS[1].0.into())
-}
-
-fn variable_marine_day(date: &Date) -> Option<String> {
-    if date.month() != 7 {
-        return None;
-    }
-
-    if date.weekday() != &Weekday::Monday {
-        return None;
-    }
-
-    if date.year() <= HOLIDAYS[9].4.unwrap() {
-        return None;
-    }
-
-    if !is_third_week(date.day()) {
-        return None;
-    }
-
-    Some(HOLIDAYS[9].0.into())
-}
-
-fn variable_respect_for_the_aged_day(date: &Date) -> Option<String> {
-    if date.month() != 9 {
-        return None;
-    }
-
-    if date.weekday() != &Weekday::Monday {
-        return None;
-    }
-
-    if date.year() <= HOLIDAYS[11].4.unwrap() {
-        return None;
-    }
-
-    if !is_third_week(date.day()) {
-        return None;
-    }
-
-    Some(HOLIDAYS[11].0.into())
-}
-
-fn variable_sports_day(date: &Date) -> Option<String> {
-    if date.month() != 10 {
-        return None;
-    }
-
-    if date.weekday() != &Weekday::Monday {
-        return None;
-    }
-
-    if date.year() <= HOLIDAYS[12].4.unwrap() {
-        return None;
-    }
-
-    if !is_second_week(date.day()) {
-        return None;
-    }
-
-    Some(HOLIDAYS[12].0.into())
+    Some(HOLIDAYS[index].0.into())
 }
 
 #[cfg(test)]
