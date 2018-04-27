@@ -20,6 +20,24 @@ const HOLIDAYS: [(&str, i32, u32, u32, Option<i32>); 16] = [
     ("天皇誕生日", 1989, 12, 23, None),
 ];
 
+const VERNAL_EQUINOX: [[u32; 4]; 15] = [
+    [21, 21, 21, 22], // 1900-1923
+    [21, 21, 21, 21], // 1924-1959
+    [20, 21, 21, 21], // 1960-1991
+    [20, 20, 21, 21], // 1992-2023
+    [20, 20, 21, 21], // 2024-2055
+    [20, 20, 20, 20], // 2056-2091
+    [19, 20, 20, 20], // 2092-2099
+    [20, 21, 21, 21], // 2100-2123
+    [20, 20, 21, 21], // 2124-2155
+    [20, 20, 20, 21], // 2156-2187
+    [20, 20, 20, 20], // 2188-2199
+    [21, 21, 21, 21], // 2200-2223
+    [20, 21, 21, 21], // 2224-2255
+    [20, 20, 21, 21], // 2256-2287
+    [20, 20, 20, 21], // 2288-2299
+];
+
 const HOLIDAY_FROM: i32 = 1948;
 
 const NATION_FROM: i32 = 1988;
@@ -40,6 +58,8 @@ pub fn holiday(date: &Date) -> Option<String> {
         .or(variable_holiday(11, date, &is_third_week))
         // 体育の日(10月第2月曜)
         .or(variable_holiday(12, date, &is_second_week))
+        // 春分の日
+        .or(vernal_equinox_day(date))
 }
 
 fn defined_holiday(date: &Date) -> Option<String> {
@@ -99,6 +119,43 @@ fn variable_holiday(index: usize, date: &Date, week: &Fn(u32) -> bool) -> Option
     }
 
     Some(HOLIDAYS[index].0.into())
+}
+
+fn vernal_equinox_day(date: &Date) -> Option<String> {
+    if date.month() != 3 {
+        return None;
+    }
+
+    let year = date.year();
+    let index = match year {
+        1900...1923 => Some(0),
+        1924...1959 => Some(1),
+        1960...1991 => Some(2),
+        1992...2023 => Some(3),
+        2024...2055 => Some(4),
+        2056...2091 => Some(5),
+        2092...2099 => Some(6),
+        2100...2123 => Some(7),
+        2124...2155 => Some(8),
+        2156...2187 => Some(9),
+        2188...2199 => Some(10),
+        2200...2223 => Some(11),
+        2224...2255 => Some(12),
+        2256...2287 => Some(13),
+        2288...2299 => Some(14),
+        _ => None,
+    };
+
+    if let Some(i) = index {
+        let remain = year.abs() as usize % 4;
+        if date.day() == VERNAL_EQUINOX[i][remain] {
+            Some("春分の日".into())
+        } else {
+            None
+        }
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
@@ -376,6 +433,23 @@ mod tests {
         assert_eq!(holiday(&date).unwrap(), name);
 
         let date = Date::from_ymd(2018, 4, 23).unwrap();
+        assert!(holiday(&date).is_none());
+    }
+
+    #[test]
+    fn vernal_equinox_day() {
+        let name = "春分の日";
+
+        let date = Date::from_ymd(2018, 3, 21).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(2018, 2, 21).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(1899, 3, 20).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2300, 3, 20).unwrap();
         assert!(holiday(&date).is_none());
     }
 }
