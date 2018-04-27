@@ -1,6 +1,24 @@
 //! 祝祭日定義
 use date::{Date, Weekday};
 
+const AUTUMNAL_EQUINOX: [[u32; 4]; 15] = [
+    [23, 24, 24, 24], // 1900-1919
+    [23, 23, 24, 24], // 1920-1947
+    [23, 23, 23, 24], // 1948-1979
+    [23, 23, 23, 23], // 1980-2011
+    [22, 23, 23, 23], // 2012-2043
+    [22, 22, 23, 23], // 2044-2075
+    [22, 22, 22, 23], // 2076-2099
+    [23, 23, 23, 24], // 2100-2103
+    [23, 23, 23, 23], // 2104-2139
+    [22, 23, 23, 23], // 2140-2167
+    [22, 22, 23, 23], // 2168-2199
+    [23, 23, 23, 24], // 2200-2227
+    [23, 23, 23, 23], // 2228-2263
+    [22, 23, 23, 23], // 2264-2291
+    [22, 22, 23, 23], // 2292-2299
+];
+
 const HOLIDAYS: [(&str, i32, u32, u32, Option<i32>); 16] = [
     ("元日", 1948, 1, 1, None),
     ("成人の日", 1948, 1, 15, Some(1999)),
@@ -60,6 +78,45 @@ pub fn holiday(date: &Date) -> Option<String> {
         .or(variable_holiday(12, date, &is_second_week))
         // 春分の日
         .or(vernal_equinox_day(date))
+        // 秋分の日
+        .or(autumnal_equinox_day(date))
+}
+
+fn autumnal_equinox_day(date: &Date) -> Option<String> {
+    if date.month() != 9 {
+        return None;
+    }
+
+    let year = date.year();
+    let index = match year {
+        1900...1919 => Some(0),
+        1920...1947 => Some(1),
+        1948...1979 => Some(2),
+        1980...2011 => Some(3),
+        2012...2043 => Some(4),
+        2044...2075 => Some(5),
+        2076...2099 => Some(6),
+        2100...2103 => Some(7),
+        2104...2139 => Some(8),
+        2140...2167 => Some(9),
+        2168...2199 => Some(10),
+        2200...2227 => Some(11),
+        2228...2263 => Some(12),
+        2264...2291 => Some(13),
+        2292...2299 => Some(14),
+        _ => None,
+    };
+
+    if let Some(i) = index {
+        let remain = year.abs() as usize % 4;
+        if date.day() == AUTUMNAL_EQUINOX[i][remain] {
+            Some("秋分の日".into())
+        } else {
+            None
+        }
+    } else {
+        None
+    }
 }
 
 fn defined_holiday(date: &Date) -> Option<String> {
@@ -450,6 +507,23 @@ mod tests {
         assert!(holiday(&date).is_none());
 
         let date = Date::from_ymd(2300, 3, 20).unwrap();
+        assert!(holiday(&date).is_none());
+    }
+
+    #[test]
+    fn autumnal_equinox_day() {
+        let name = "秋分の日";
+
+        let date = Date::from_ymd(2018, 9, 23).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(2018, 8, 23).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(1899, 9, 23).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2300, 9, 23).unwrap();
         assert!(holiday(&date).is_none());
     }
 }
