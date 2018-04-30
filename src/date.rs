@@ -75,20 +75,8 @@ impl Date {
         Date::parse(&ymd)
     }
 
-    pub fn year(&self) -> i32 {
-        self.year
-    }
-
-    pub fn month(&self) -> u32 {
-        self.month
-    }
-
     pub fn day(&self) -> u32 {
         self.day
-    }
-
-    pub fn weekday(&self) -> &Weekday {
-        &self.weekday
     }
 
     pub fn era(&self) -> Option<era::Era> {
@@ -99,11 +87,23 @@ impl Date {
         holiday::holiday(self)
     }
 
+    pub fn month(&self) -> u32 {
+        self.month
+    }
+
     pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .succ_opt()
             .ok_or(NoTomorrow(self.year, self.month, self.day))
             .map(|d| Date::from_chrono(d))
+    }
+
+    pub fn weekday(&self) -> &Weekday {
+        &self.weekday
+    }
+
+    pub fn year(&self) -> i32 {
+        self.year
     }
 
     pub fn yesterday(&self) -> Result<Self, KoyomiError> {
@@ -145,6 +145,51 @@ impl PartialOrd for Date {
 mod tests {
     use chrono::naive::{MAX_DATE, MIN_DATE};
     use super::*;
+
+    #[test]
+    fn parse_hyphen_format() {
+        assert!(Date::parse("2018-01-01").is_ok());
+    }
+
+    #[test]
+    fn parse_slash_format() {
+        assert!(Date::parse("2018/01/01").is_ok());
+    }
+
+    #[test]
+    fn parse_invalid_format() {
+        assert!(Date::parse("2018 01 01").is_err());
+    }
+
+    #[test]
+    fn valid_ymd() {
+        assert!(Date::from_ymd(2018, 1, 1).is_ok());
+    }
+
+    #[test]
+    fn invalid_ymd() {
+        assert!(Date::from_ymd(2018, 13, 1).is_err());
+    }
+
+    #[test]
+    fn ymd_of_date() {
+        let date = Date::parse("2018-12-24").unwrap();
+        assert_eq!(date.year(), 2018);
+        assert_eq!(date.month(), 12);
+        assert_eq!(date.day(), 24);
+    }
+
+    #[test]
+    fn era_of_date() {
+        let date = Date::parse("2018-12-24").unwrap();
+        assert_eq!(date.era().unwrap().name(), "平成");
+    }
+
+    #[test]
+    fn holiday_of_date() {
+        let date = Date::parse("2018-12-23").unwrap();
+        assert_eq!(date.holiday().unwrap(), "天皇誕生日");
+    }
 
     #[test]
     fn monday_of_weekday() {
@@ -196,31 +241,6 @@ mod tests {
     }
 
     #[test]
-    fn parse_hyphen_format() {
-        assert!(Date::parse("2018-01-01").is_ok());
-    }
-
-    #[test]
-    fn parse_slash_format() {
-        assert!(Date::parse("2018/01/01").is_ok());
-    }
-
-    #[test]
-    fn parse_invalid_format() {
-        assert!(Date::parse("2018 01 01").is_err());
-    }
-
-    #[test]
-    fn valid_ymd() {
-        assert!(Date::from_ymd(2018, 1, 1).is_ok());
-    }
-
-    #[test]
-    fn invalid_ymd() {
-        assert!(Date::from_ymd(2018, 13, 1).is_err());
-    }
-
-    #[test]
     fn valid_tomorrow() {
         let date = Date::parse("2018-12-24").unwrap();
         assert!(date.tomorrow().is_ok());
@@ -242,18 +262,6 @@ mod tests {
     fn invalid_yesterday() {
         let date = Date::parse(&MIN_DATE.format("%Y-%m-%d").to_string()).unwrap();
         assert!(date.yesterday().is_err());
-    }
-
-    #[test]
-    fn era_of_date() {
-        let date = Date::parse("2018-12-24").unwrap();
-        assert_eq!(date.era().unwrap().name(), "平成");
-    }
-
-    #[test]
-    fn holiday_of_date() {
-        let date = Date::parse("2018-12-23").unwrap();
-        assert_eq!(date.holiday().unwrap(), "天皇誕生日");
     }
 
     #[test]
