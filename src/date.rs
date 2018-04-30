@@ -1,10 +1,10 @@
 //! 日付
 use std::cmp::Ordering;
-use std::ops::Deref;
 
 use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
 
 use era;
+use holiday;
 use self::KoyomiError::*;
 use self::Weekday::*;
 
@@ -26,18 +26,16 @@ pub enum Weekday {
     Sunday,
 }
 
-impl Deref for Weekday {
-    type Target = char;
-
-    fn deref(&self) -> &char {
+impl Weekday {
+    pub fn japanese(&self) -> char {
         match *self {
-            Monday => &'月',
-            Tuesday => &'火',
-            Wednesday => &'水',
-            Thursday => &'木',
-            Friday => &'金',
-            Saturday => &'土',
-            Sunday => &'日',
+            Monday => '月',
+            Tuesday => '火',
+            Wednesday => '水',
+            Thursday => '木',
+            Friday => '金',
+            Saturday => '土',
+            Sunday => '日',
         }
     }
 }
@@ -148,49 +146,49 @@ mod tests {
     fn monday_of_weekday() {
         let weekday = Weekday::from(ChronoWeekday::Mon);
         assert_eq!(weekday, Monday);
-        assert_eq!(*weekday, '月');
+        assert_eq!(weekday.japanese(), '月');
     }
 
     #[test]
     fn tuesday_of_weekday() {
         let weekday = Weekday::from(ChronoWeekday::Tue);
         assert_eq!(weekday, Tuesday);
-        assert_eq!(*weekday, '火');
+        assert_eq!(weekday.japanese(), '火');
     }
 
     #[test]
     fn wednesday_of_weekday() {
         let weekday = Weekday::from(ChronoWeekday::Wed);
         assert_eq!(weekday, Wednesday);
-        assert_eq!(*weekday, '水');
+        assert_eq!(weekday.japanese(), '水');
     }
 
     #[test]
     fn thursday_of_weekday() {
         let weekday = Weekday::from(ChronoWeekday::Thu);
         assert_eq!(weekday, Thursday);
-        assert_eq!(*weekday, '木');
+        assert_eq!(weekday.japanese(), '木');
     }
 
     #[test]
     fn friday_of_weekday() {
         let weekday = Weekday::from(ChronoWeekday::Fri);
         assert_eq!(weekday, Friday);
-        assert_eq!(*weekday, '金');
+        assert_eq!(weekday.japanese(), '金');
     }
 
     #[test]
     fn saturday_of_weekday() {
         let weekday = Weekday::from(ChronoWeekday::Sat);
         assert_eq!(weekday, Saturday);
-        assert_eq!(*weekday, '土');
+        assert_eq!(weekday.japanese(), '土');
     }
 
     #[test]
     fn sunday_of_weekday() {
         let weekday = Weekday::from(ChronoWeekday::Sun);
         assert_eq!(weekday, Sunday);
-        assert_eq!(*weekday, '日');
+        assert_eq!(weekday.japanese(), '日');
     }
 
     #[test]
