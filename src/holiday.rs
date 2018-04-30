@@ -152,9 +152,10 @@ fn substitude_holiday(date: &Date) -> Option<String> {
         return None;
     }
 
-    match date.yesterday() {
-        Ok(yesterday) => defined_holiday(&yesterday).map(|_| "振替休日".into()),
-        Err(_) => None,
+    if let Ok(yesterday) = date.yesterday() {
+        defined_holiday(&yesterday).map(|_| "振替休日".into())
+    } else {
+        None
     }
 }
 
