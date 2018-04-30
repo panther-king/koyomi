@@ -58,7 +58,7 @@ const VERNAL_EQUINOX: [[u32; 4]; 15] = [
 
 const HOLIDAY_FROM: i32 = 1948;
 
-const NATION_FROM: i32 = 1988;
+const NATION_FROM: i32 = 1986;
 
 const ONE_WEEK: u32 = 7;
 
@@ -80,6 +80,8 @@ pub fn holiday(date: &Date) -> Option<String> {
         .or(vernal_equinox_day(date))
         // 秋分の日
         .or(autumnal_equinox_day(date))
+        // 国民の休日(前後が祝日の平日)
+        .or(national_holiday(date))
 }
 
 fn autumnal_equinox_day(date: &Date) -> Option<String> {
@@ -141,6 +143,36 @@ fn is_second_week(day: u32) -> bool {
 
 fn is_third_week(day: u32) -> bool {
     (day / ONE_WEEK == 3) || (day / ONE_WEEK == 2 && day % ONE_WEEK >= 1)
+}
+
+fn national_holiday(date: &Date) -> Option<String> {
+    if date.year() < NATION_FROM {
+        return None;
+    }
+
+    if date.weekday() == &Weekday::Sunday {
+        return None;
+    }
+
+    if defined_holiday(&date).is_some() {
+        return None;
+    }
+
+    // シルバーウィークで、敬老の日(可変)を考慮する必要がある
+    let yesterday = date.yesterday().ok()?;
+    let between = defined_holiday(&yesterday).or(variable_holiday(11, &yesterday, &is_third_week));
+    if between.is_none() {
+        return None;
+    }
+
+    // シルバーウィークで、秋分の日を考慮する必要がある
+    let tomorrow = date.tomorrow().ok()?;
+    let between = defined_holiday(&tomorrow).or(autumnal_equinox_day(&tomorrow));
+    if between.is_none() {
+        return None;
+    }
+
+    Some("国民の休日".into())
 }
 
 fn substitude_holiday(date: &Date) -> Option<String> {
@@ -304,7 +336,7 @@ mod tests {
         assert_eq!(holiday(&date).unwrap(), name);
 
         let date = Date::from_ymd(2006, 5, 4).unwrap();
-        assert!(holiday(&date).is_none());
+        assert_ne!(holiday(&date).unwrap(), name);
     }
 
     #[test]
@@ -526,5 +558,19 @@ mod tests {
 
         let date = Date::from_ymd(2300, 9, 23).unwrap();
         assert!(holiday(&date).is_none());
+    }
+
+    #[test]
+    fn national_holiday() {
+        let name = "国民の休日";
+
+        let date = Date::from_ymd(1988, 5, 4).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(1986, 5, 4).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(1987, 5, 4).unwrap();
+        assert_ne!(holiday(&date).unwrap(), name);
     }
 }
