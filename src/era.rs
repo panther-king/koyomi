@@ -1,4 +1,4 @@
-//! # 祝祭日定義
+//! # 和暦定義
 use date::Date;
 
 const ERA: [(&str, i32, u32, u32, Option<(i32, u32, u32)>); 4] = [
