@@ -27,7 +27,7 @@ pub fn era(date: &Date) -> Option<Era> {
     None
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Era {
     ad: i32,
     name: String,

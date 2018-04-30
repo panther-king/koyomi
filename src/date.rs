@@ -95,6 +95,10 @@ impl Date {
         era::era(self)
     }
 
+    pub fn holiday(&self) -> Option<String> {
+        holiday::holiday(self)
+    }
+
     pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .succ_opt()
@@ -238,6 +242,18 @@ mod tests {
     fn invalid_yesterday() {
         let date = Date::parse(&MIN_DATE.format("%Y-%m-%d").to_string()).unwrap();
         assert!(date.yesterday().is_err());
+    }
+
+    #[test]
+    fn era_of_date() {
+        let date = Date::parse("2018-12-24").unwrap();
+        assert_eq!(date.era().unwrap().name(), "平成");
+    }
+
+    #[test]
+    fn holiday_of_date() {
+        let date = Date::parse("2018-12-23").unwrap();
+        assert_eq!(date.holiday().unwrap(), "天皇誕生日");
     }
 
     #[test]
