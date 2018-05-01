@@ -3,17 +3,10 @@ use std::cmp::Ordering;
 
 use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
 
+use KoyomiError;
 use era;
 use holiday;
-use self::KoyomiError::*;
 use self::Weekday::*;
-
-#[derive(Debug)]
-pub enum KoyomiError {
-    InvalidDate(String),
-    NoTomorrow(i32, u32, u32),
-    NoYesterday(i32, u32, u32),
-}
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Weekday {
@@ -66,7 +59,7 @@ impl Date {
     pub fn parse(fmt: &str) -> Result<Self, KoyomiError> {
         NaiveDate::parse_from_str(fmt, "%Y-%m-%d")
             .or(NaiveDate::parse_from_str(fmt, "%Y/%m/%d"))
-            .map_err(|_| InvalidDate(fmt.into()))
+            .map_err(|_| KoyomiError::InvalidDate(fmt.into()))
             .map(|d| Date::from_chrono(d))
     }
 
@@ -94,7 +87,7 @@ impl Date {
     pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .succ_opt()
-            .ok_or(NoTomorrow(self.year, self.month, self.day))
+            .ok_or(KoyomiError::NoTomorrow(self.year, self.month, self.day))
             .map(|d| Date::from_chrono(d))
     }
 
@@ -109,7 +102,7 @@ impl Date {
     pub fn yesterday(&self) -> Result<Self, KoyomiError> {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .pred_opt()
-            .ok_or(NoYesterday(self.year, self.month, self.day))
+            .ok_or(KoyomiError::NoYesterday(self.year, self.month, self.day))
             .map(|d| Date::from_chrono(d))
     }
 
