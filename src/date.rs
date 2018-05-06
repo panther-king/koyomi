@@ -1,5 +1,6 @@
 //! 日付
 use std::cmp::Ordering;
+use std::ops::Sub;
 
 use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
 
@@ -131,6 +132,16 @@ impl Ord for Date {
 impl PartialOrd for Date {
     fn partial_cmp(&self, other: &Date) -> Option<Ordering> {
         Some(self.cmp(&other))
+    }
+}
+
+impl Sub for Date {
+    type Output = i64;
+
+    fn sub(self, rhs: Date) -> i64 {
+        NaiveDate::from_ymd(self.year, self.month, self.day)
+            .signed_duration_since(NaiveDate::from_ymd(rhs.year, rhs.month, rhs.day))
+            .num_days()
     }
 }
 
@@ -308,5 +319,12 @@ mod tests {
 
         let d2 = Date::parse("2018-04-20").unwrap();
         assert!(d1 <= d2);
+    }
+
+    #[test]
+    fn date_sub() {
+        let d1 = Date::parse("2018-01-01").unwrap();
+        let d2 = Date::parse("2017-01-01").unwrap();
+        assert_eq!(d1 - d2, 365);
     }
 }
