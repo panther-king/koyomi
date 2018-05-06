@@ -1,24 +1,6 @@
 //! 祝祭日定義
 use date::{Date, Weekday};
 
-const AUTUMNAL_EQUINOX: [[u32; 4]; 15] = [
-    [23, 24, 24, 24], // 1900-1919
-    [23, 23, 24, 24], // 1920-1947
-    [23, 23, 23, 24], // 1948-1979
-    [23, 23, 23, 23], // 1980-2011
-    [22, 23, 23, 23], // 2012-2043
-    [22, 22, 23, 23], // 2044-2075
-    [22, 22, 22, 23], // 2076-2099
-    [23, 23, 23, 24], // 2100-2103
-    [23, 23, 23, 23], // 2104-2139
-    [22, 23, 23, 23], // 2140-2167
-    [22, 22, 23, 23], // 2168-2199
-    [23, 23, 23, 24], // 2200-2227
-    [23, 23, 23, 23], // 2228-2263
-    [22, 23, 23, 23], // 2264-2291
-    [22, 22, 23, 23], // 2292-2299
-];
-
 const HOLIDAYS: [(&str, i32, u32, u32, Option<i32>); 16] = [
     ("元日", 1948, 1, 1, None),
     ("成人の日", 1948, 1, 15, Some(1999)),
@@ -36,24 +18,6 @@ const HOLIDAYS: [(&str, i32, u32, u32, Option<i32>); 16] = [
     ("文化の日", 1948, 11, 3, None),
     ("勤労感謝の日", 1948, 11, 23, None),
     ("天皇誕生日", 1989, 12, 23, None),
-];
-
-const VERNAL_EQUINOX: [[u32; 4]; 15] = [
-    [21, 21, 21, 22], // 1900-1923
-    [21, 21, 21, 21], // 1924-1959
-    [20, 21, 21, 21], // 1960-1991
-    [20, 20, 21, 21], // 1992-2023
-    [20, 20, 21, 21], // 2024-2055
-    [20, 20, 20, 20], // 2056-2091
-    [19, 20, 20, 20], // 2092-2099
-    [20, 21, 21, 21], // 2100-2123
-    [20, 20, 21, 21], // 2124-2155
-    [20, 20, 20, 21], // 2156-2187
-    [20, 20, 20, 20], // 2188-2199
-    [21, 21, 21, 21], // 2200-2223
-    [20, 21, 21, 21], // 2224-2255
-    [20, 20, 21, 21], // 2256-2287
-    [20, 20, 20, 21], // 2288-2299
 ];
 
 const HOLIDAY_FROM: i32 = 1948;
@@ -85,37 +49,19 @@ pub fn holiday(date: &Date) -> Option<String> {
 }
 
 fn autumnal_equinox_day(date: &Date) -> Option<String> {
+    if date.year() < HOLIDAY_FROM {
+        return None;
+    }
+
     if date.month() != 9 {
         return None;
     }
 
-    let year = date.year();
-    let index = match year {
-        1900...1919 => Some(0),
-        1920...1947 => Some(1),
-        1948...1979 => Some(2),
-        1980...2011 => Some(3),
-        2012...2043 => Some(4),
-        2044...2075 => Some(5),
-        2076...2099 => Some(6),
-        2100...2103 => Some(7),
-        2104...2139 => Some(8),
-        2140...2167 => Some(9),
-        2168...2199 => Some(10),
-        2200...2227 => Some(11),
-        2228...2263 => Some(12),
-        2264...2291 => Some(13),
-        2292...2299 => Some(14),
-        _ => None,
-    };
-
-    if let Some(i) = index {
-        let remain = year.abs() as usize % 4;
-        if date.day() == AUTUMNAL_EQUINOX[i][remain] {
-            Some("秋分の日".into())
-        } else {
-            None
-        }
+    let m = 23.2488 + 0.242194 * ((date.year() - 1980) as f32);
+    let s = (date.year() - 1980) / 4;
+    let d = (m as isize - s as isize).abs() as u32;
+    if d == date.day() {
+        Some("秋分の日".into())
     } else {
         None
     }
@@ -212,37 +158,19 @@ fn variable_holiday(index: usize, date: &Date, week: &Fn(u32) -> bool) -> Option
 }
 
 fn vernal_equinox_day(date: &Date) -> Option<String> {
+    if date.year() <= HOLIDAY_FROM {
+        return None;
+    }
+
     if date.month() != 3 {
         return None;
     }
 
-    let year = date.year();
-    let index = match year {
-        1900...1923 => Some(0),
-        1924...1959 => Some(1),
-        1960...1991 => Some(2),
-        1992...2023 => Some(3),
-        2024...2055 => Some(4),
-        2056...2091 => Some(5),
-        2092...2099 => Some(6),
-        2100...2123 => Some(7),
-        2124...2155 => Some(8),
-        2156...2187 => Some(9),
-        2188...2199 => Some(10),
-        2200...2223 => Some(11),
-        2224...2255 => Some(12),
-        2256...2287 => Some(13),
-        2288...2299 => Some(14),
-        _ => None,
-    };
-
-    if let Some(i) = index {
-        let remain = year.abs() as usize % 4;
-        if date.day() == VERNAL_EQUINOX[i][remain] {
-            Some("春分の日".into())
-        } else {
-            None
-        }
+    let m = 20.8431 + 0.241294 * ((date.year() - 1980) as f32);
+    let s = (date.year() - 1980) / 4;
+    let d = (m as isize - s as isize).abs() as u32;
+    if d == date.day() {
+        Some("春分の日".into())
     } else {
         None
     }
