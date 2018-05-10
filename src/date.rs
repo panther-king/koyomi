@@ -1,6 +1,5 @@
 //! 日付
 use std::cmp::Ordering;
-use std::ops::Sub;
 
 use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
 
@@ -85,6 +84,12 @@ impl Date {
         self.month
     }
 
+    pub fn num_days(&self, date: &Date) -> i64 {
+        let min = NaiveDate::from_ymd(self.year, self.month, self.day);
+        let sub = NaiveDate::from_ymd(date.year(), date.month(), date.day());
+        min.signed_duration_since(sub).num_days()
+    }
+
     pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .succ_opt()
@@ -132,16 +137,6 @@ impl Ord for Date {
 impl PartialOrd for Date {
     fn partial_cmp(&self, other: &Date) -> Option<Ordering> {
         Some(self.cmp(&other))
-    }
-}
-
-impl Sub for Date {
-    type Output = i64;
-
-    fn sub(self, rhs: Date) -> i64 {
-        NaiveDate::from_ymd(self.year, self.month, self.day)
-            .signed_duration_since(NaiveDate::from_ymd(rhs.year, rhs.month, rhs.day))
-            .num_days()
     }
 }
 
@@ -269,6 +264,20 @@ mod tests {
     }
 
     #[test]
+    fn num_days() {
+        let date = Date::parse("2018-04-01").unwrap();
+
+        let sub = Date::parse("2018-03-01").unwrap();
+        assert_eq!(date.num_days(&sub), 31);
+
+        let sub = Date::parse("2018-05-01").unwrap();
+        assert_eq!(date.num_days(&sub), -30);
+
+        let sub = Date::parse("2018-04-01").unwrap();
+        assert_eq!(date.num_days(&sub), 0);
+    }
+
+    #[test]
     fn date_equal() {
         let d1 = Date::parse("2018-04-01").unwrap();
         let d2 = Date::parse("2018-04-01").unwrap();
@@ -319,12 +328,5 @@ mod tests {
 
         let d2 = Date::parse("2018-04-20").unwrap();
         assert!(d1 <= d2);
-    }
-
-    #[test]
-    fn date_sub() {
-        let d1 = Date::parse("2018-01-01").unwrap();
-        let d2 = Date::parse("2017-01-01").unwrap();
-        assert_eq!(d1 - d2, 365);
     }
 }
