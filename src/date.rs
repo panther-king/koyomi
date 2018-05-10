@@ -59,7 +59,7 @@ impl Date {
     pub fn parse(fmt: &str) -> Result<Self, KoyomiError> {
         NaiveDate::parse_from_str(fmt, "%Y-%m-%d")
             .or(NaiveDate::parse_from_str(fmt, "%Y/%m/%d"))
-            .map_err(|_| KoyomiError::InvalidDate(fmt.into()))
+            .map_err(|_| KoyomiError::InvalidFormat(fmt.into()))
             .map(|d| Date::from_chrono(d))
     }
 
@@ -88,6 +88,10 @@ impl Date {
         let min = NaiveDate::from_ymd(self.year, self.month, self.day);
         let sub = NaiveDate::from_ymd(date.year(), date.month(), date.day());
         min.signed_duration_since(sub).num_days()
+    }
+
+    pub fn to_string(&self) -> String {
+        format!("{:<4}-{:<02}-{:<02}", self.year, self.month, self.day)
     }
 
     pub fn tomorrow(&self) -> Result<Self, KoyomiError> {
@@ -275,6 +279,13 @@ mod tests {
 
         let sub = Date::parse("2018-04-01").unwrap();
         assert_eq!(date.num_days(&sub), 0);
+    }
+
+    #[test]
+    fn date_to_string() {
+        let format = "2018-01-01";
+        let date = Date::parse(format).unwrap();
+        assert_eq!(date.to_string(), format);
     }
 
     #[test]
