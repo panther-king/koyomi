@@ -53,6 +53,26 @@ impl Calendar {
         self.from.to_string()
     }
 
+    pub fn make(&self) -> Vec<Date> {
+        let days = self.until.num_days(&self.from) + 1;
+        let mut cal = Vec::with_capacity(days as usize);
+        let mut date = self.from.tomorrow();
+
+        cal.push(self.from.clone());
+
+        loop {
+            if let Ok(d) = date {
+                if d > self.until {
+                    break;
+                }
+                date = d.tomorrow();
+                cal.push(d);
+            }
+        }
+
+        cal
+    }
+
     pub fn until(&self) -> String {
         self.until.to_string()
     }
@@ -201,6 +221,16 @@ mod tests {
         let until = Date::parse("2018-04-30").unwrap();
         let calendar = Calendar::new(from, until).unwrap();
         assert_eq!(calendar.from(), "2018-04-01");
+    }
+
+    #[test]
+    fn make_calendar() {
+        let from = Date::parse("2018-04-01").unwrap();
+        let until = Date::parse("2018-04-30").unwrap();
+        let cal = Calendar::new(from, until).unwrap().make();
+        assert_eq!(cal.len(), 30);
+        assert_eq!(cal[0].to_string(), "2018-04-01");
+        assert_eq!(cal[29].to_string(), "2018-04-30");
     }
 
     #[test]
