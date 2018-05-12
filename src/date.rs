@@ -3,12 +3,12 @@ use std::cmp::Ordering;
 
 use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
 
+use self::Weekday::*;
 use KoyomiError;
 use era;
 use holiday;
-use self::Weekday::*;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Weekday {
     Monday,
     Tuesday,
@@ -47,7 +47,7 @@ impl From<ChronoWeekday> for Weekday {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Date {
     year: i32,
     month: u32,
@@ -146,8 +146,8 @@ impl PartialOrd for Date {
 
 #[cfg(test)]
 mod tests {
-    use chrono::naive::{MAX_DATE, MIN_DATE};
     use super::*;
+    use chrono::naive::{MAX_DATE, MIN_DATE};
 
     #[test]
     fn parse_hyphen_format() {
