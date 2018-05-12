@@ -7,6 +7,8 @@ mod holiday;
 
 pub use date::Date;
 
+pub type KoyomiResult<T> = Result<T, KoyomiError>;
+
 #[derive(Debug)]
 pub enum KoyomiError {
     InvalidFormat(String),

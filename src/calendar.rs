@@ -1,5 +1,5 @@
 //! # カレンダー
-use KoyomiError;
+use super::{KoyomiError, KoyomiResult};
 use date::Date;
 
 pub fn num_days(year: i32, month: u32) -> u32 {
@@ -33,7 +33,7 @@ pub struct Calendar {
 }
 
 impl Calendar {
-    pub fn new(from: Date, until: Date) -> Result<Self, KoyomiError> {
+    pub fn new(from: Date, until: Date) -> KoyomiResult<Self> {
         if until.num_days(&from) <= 0 {
             Err(KoyomiError::InvalidTerm(from, until))
         } else {
@@ -86,7 +86,7 @@ pub struct CalendarBuilder<'a> {
 }
 
 impl<'a> CalendarBuilder<'a> {
-    pub fn finalize(&self) -> Result<Calendar, KoyomiError> {
+    pub fn finalize(&self) -> KoyomiResult<Calendar> {
         if let Some(single) = self.single {
             self.single_calendar(single)
         } else {
@@ -111,7 +111,7 @@ impl<'a> CalendarBuilder<'a> {
         self
     }
 
-    fn date_from(&self) -> Result<Date, KoyomiError> {
+    fn date_from(&self) -> KoyomiResult<Date> {
         match self.from {
             None => Err(KoyomiError::NotEnough),
             Some(f) => match f.split("-").count() {
@@ -122,7 +122,7 @@ impl<'a> CalendarBuilder<'a> {
         }
     }
 
-    fn date_until(&self) -> Result<Date, KoyomiError> {
+    fn date_until(&self) -> KoyomiResult<Date> {
         match self.until {
             None => Err(KoyomiError::NotEnough),
             Some(u) => match u.split("-").count() {
@@ -133,13 +133,13 @@ impl<'a> CalendarBuilder<'a> {
         }
     }
 
-    fn end_of_month(&self, fmt: &str) -> Result<Date, KoyomiError> {
+    fn end_of_month(&self, fmt: &str) -> KoyomiResult<Date> {
         let first = Date::parse(fmt)?;
         let (y, m) = (first.year(), first.month());
         Date::from_ymd(y, m, num_days(y, m))
     }
 
-    fn single_calendar(&self, ym: &str) -> Result<Calendar, KoyomiError> {
+    fn single_calendar(&self, ym: &str) -> KoyomiResult<Calendar> {
         let splits = ym.split("-").collect::<Vec<_>>();
         match splits.len() {
             1 => {
