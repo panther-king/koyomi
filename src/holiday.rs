@@ -88,7 +88,7 @@ fn is_second_week(day: u32) -> bool {
 }
 
 fn is_third_week(day: u32) -> bool {
-    (day / ONE_WEEK == 3) || (day / ONE_WEEK == 2 && day % ONE_WEEK >= 1)
+    (day / ONE_WEEK == 3 && day % ONE_WEEK == 0) || (day / ONE_WEEK == 2 && day % ONE_WEEK >= 1)
 }
 
 fn national_holiday(date: &Date) -> Option<String> {
