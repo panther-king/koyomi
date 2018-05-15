@@ -5,7 +5,13 @@ mod date;
 mod era;
 mod holiday;
 
+pub use calendar::Calendar;
+pub use calendar::CalendarBuilder;
+
 pub use date::Date;
+pub use date::Weekday;
+
+pub use era::Era;
 
 pub type KoyomiResult<T> = Result<T, KoyomiError>;
 
