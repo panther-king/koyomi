@@ -33,13 +33,13 @@ pub fn holiday(date: &Date) -> Option<String> {
         // 振替休日(前日が日曜で祝日)
         .or(substitude_holiday(date))
         // 成人の日(1月第2月曜)
-        .or(variable_holiday(1, date, &is_second_week))
+        .or(variable_holiday(1, date, is_second_week))
         // 海の日(7月第3月曜)
-        .or(variable_holiday(9, date, &is_third_week))
+        .or(variable_holiday(9, date, is_third_week))
         // 敬老の日(9月第3月曜)
-        .or(variable_holiday(11, date, &is_third_week))
+        .or(variable_holiday(11, date, is_third_week))
         // 体育の日(10月第2月曜)
-        .or(variable_holiday(12, date, &is_second_week))
+        .or(variable_holiday(12, date, is_second_week))
         // 春分の日
         .or(vernal_equinox_day(date))
         // 秋分の日
@@ -106,7 +106,7 @@ fn national_holiday(date: &Date) -> Option<String> {
 
     // シルバーウィークで、敬老の日(可変)を考慮する必要がある
     let yesterday = date.yesterday().ok()?;
-    let between = defined_holiday(&yesterday).or(variable_holiday(11, &yesterday, &is_third_week));
+    let between = defined_holiday(&yesterday).or(variable_holiday(11, &yesterday, is_third_week));
     if between.is_none() {
         return None;
     }
@@ -140,7 +140,7 @@ fn substitude_holiday(date: &Date) -> Option<String> {
     }
 }
 
-fn variable_holiday(index: usize, date: &Date, week: &Fn(u32) -> bool) -> Option<String> {
+fn variable_holiday(index: usize, date: &Date, week: impl Fn(u32) -> bool) -> Option<String> {
     if date.month() != HOLIDAYS[index].2 {
         return None;
     }
