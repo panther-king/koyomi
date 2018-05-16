@@ -1,11 +1,22 @@
 extern crate koyomi;
 
-#[macro_use]
-mod setup;
+macro_rules! assert_koyomi {
+    ($e1:expr, $e2:expr, $e3:expr, $e4:expr) => {
+        assert_eq!($e1.to_string(), $e2);
+        assert_eq!($e1.weekday().japanese(), $e3);
+        assert_eq!($e1.holiday(), $e4);
+    };
+}
+
+fn year_of_calendar(year: usize) -> Vec<koyomi::Date> {
+    let year = format!("{}", year);
+    let calendar = koyomi::Calendar::build().single(&year).finalize().unwrap();
+    calendar.make()
+}
 
 #[test]
 fn january2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[0], "2018-01-01", '月', Some("元日".into()));
     assert_koyomi!(c[1], "2018-01-02", '火', None);
@@ -42,7 +53,7 @@ fn january2018() {
 
 #[test]
 fn february2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[31], "2018-02-01", '木', None);
     assert_koyomi!(c[32], "2018-02-02", '金', None);
@@ -76,7 +87,7 @@ fn february2018() {
 
 #[test]
 fn march2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[59], "2018-03-01", '木', None);
     assert_koyomi!(c[60], "2018-03-02", '金', None);
@@ -113,7 +124,7 @@ fn march2018() {
 
 #[test]
 fn april2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[90], "2018-04-01", '日', None);
     assert_koyomi!(c[91], "2018-04-02", '月', None);
@@ -149,7 +160,7 @@ fn april2018() {
 
 #[test]
 fn may2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[120], "2018-05-01", '火', None);
     assert_koyomi!(c[121], "2018-05-02", '水', None);
@@ -186,7 +197,7 @@ fn may2018() {
 
 #[test]
 fn june2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[151], "2018-06-01", '金', None);
     assert_koyomi!(c[152], "2018-06-02", '土', None);
@@ -222,7 +233,7 @@ fn june2018() {
 
 #[test]
 fn july2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[181], "2018-07-01", '日', None);
     assert_koyomi!(c[182], "2018-07-02", '月', None);
@@ -259,7 +270,7 @@ fn july2018() {
 
 #[test]
 fn august2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[212], "2018-08-01", '水', None);
     assert_koyomi!(c[213], "2018-08-02", '木', None);
@@ -296,7 +307,7 @@ fn august2018() {
 
 #[test]
 fn september2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[243], "2018-09-01", '土', None);
     assert_koyomi!(c[244], "2018-09-02", '日', None);
@@ -332,7 +343,7 @@ fn september2018() {
 
 #[test]
 fn october2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[273], "2018-10-01", '月', None);
     assert_koyomi!(c[274], "2018-10-02", '火', None);
@@ -369,7 +380,7 @@ fn october2018() {
 
 #[test]
 fn november2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[304], "2018-11-01", '木', None);
     assert_koyomi!(c[305], "2018-11-02", '金', None);
@@ -410,7 +421,7 @@ fn november2018() {
 
 #[test]
 fn december2018() {
-    let c = setup::year_of_calendar(2018);
+    let c = year_of_calendar(2018);
 
     assert_koyomi!(c[334], "2018-12-01", '土', None);
     assert_koyomi!(c[335], "2018-12-02", '日', None);
