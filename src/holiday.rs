@@ -161,18 +161,27 @@ fn substitude_holiday(date: &Date) -> Option<String> {
         return None;
     }
 
-    if date.weekday() != &Weekday::Monday {
-        return None;
+    let mut yesterday = date.yesterday();
+    let mut holiday = None;
+
+    while let Ok(y) = yesterday {
+        let h = defined_holiday(&y).or(vernal_equinox_day(&y).or(autumnal_equinox_day(&y)));
+        match h {
+            None => {
+                holiday = None;
+                break;
+            }
+            Some(_) => {
+                if y.weekday() == &Weekday::Sunday {
+                    holiday = Some("振替休日".into());
+                    break;
+                }
+                yesterday = y.yesterday();
+            }
+        }
     }
 
-    if let Ok(yesterday) = date.yesterday() {
-        defined_holiday(&yesterday)
-            .or(vernal_equinox_day(&yesterday))
-            .or(autumnal_equinox_day(&yesterday))
-            .map(|_| "振替休日".into())
-    } else {
-        None
-    }
+    holiday
 }
 
 fn variable_holiday(index: usize, date: &Date, week: impl Fn(u32) -> bool) -> Option<String> {
