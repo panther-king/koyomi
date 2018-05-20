@@ -1,4 +1,5 @@
 //! 祝祭日定義
+use KoyomiResult;
 use date::{Date, Weekday};
 
 const AUTUMNAL_EQUINOX_DAYS: [[u32; 4]; 7] = [
@@ -51,7 +52,7 @@ const SUBSTITUTE_FROM: i32 = 1973;
 pub fn holiday(date: &Date) -> Option<String> {
     defined_holiday(date)
         // 振替休日(前日が日曜で祝日)
-        .or(substitude_holiday(date))
+        .or(substitute_holiday(date))
         // 成人の日(1月第2月曜)
         .or(variable_holiday(1, date, is_second_week))
         // 海の日(7月第3月曜)
@@ -156,32 +157,28 @@ fn national_holiday(date: &Date) -> Option<String> {
     Some("国民の休日".into())
 }
 
-fn substitude_holiday(date: &Date) -> Option<String> {
-    if date.year() < SUBSTITUTE_FROM {
-        return None;
-    }
-
-    let mut yesterday = date.yesterday();
-    let mut holiday = None;
-
-    while let Ok(y) = yesterday {
-        let h = defined_holiday(&y).or(vernal_equinox_day(&y).or(autumnal_equinox_day(&y)));
-        match h {
-            None => {
-                holiday = None;
-                break;
-            }
-            Some(_) => {
-                if y.weekday() == &Weekday::Sunday {
-                    holiday = Some("振替休日".into());
-                    break;
-                }
-                yesterday = y.yesterday();
+fn substitute(yesterday: KoyomiResult<Date>) -> Option<String> {
+    match yesterday {
+        Err(_) => None,
+        Ok(y) => {
+            let holiday = defined_holiday(&y)
+                .or(vernal_equinox_day(&y))
+                .or(autumnal_equinox_day(&y));
+            match holiday {
+                None => None,
+                Some(_) if y.weekday() == &Weekday::Sunday => Some("振替休日".into()),
+                Some(_) => substitute(y.yesterday()),
             }
         }
     }
+}
 
-    holiday
+fn substitute_holiday(date: &Date) -> Option<String> {
+    if date.year() < SUBSTITUTE_FROM {
+        None
+    } else {
+        substitute(date.yesterday())
+    }
 }
 
 fn variable_holiday(index: usize, date: &Date, week: impl Fn(u32) -> bool) -> Option<String> {
@@ -506,7 +503,7 @@ mod tests {
     }
 
     #[test]
-    fn substitude_holiday() {
+    fn substitute_holiday() {
         let name = "振替休日";
 
         let date = Date::from_ymd(2018, 4, 30).unwrap();
