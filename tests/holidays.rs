@@ -8,7 +8,9 @@ macro_rules! assert_holiday {
         let d = koyomi::Date::from_ymd($y, $m, $d).unwrap();
         assert_eq!(d.holiday().unwrap(), $expect);
     };
+}
 
+macro_rules! assert_holidays {
     ($name:expr, $days:expr) => {
         $days.iter().for_each(|&(y, m, d)| {
             assert_holiday!(y, m, d, $name);
@@ -39,7 +41,7 @@ fn coming_of_age_day() {
         assert_holiday!(y, 1, 15, name);
     });
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (2000, 1, 10),
@@ -78,7 +80,7 @@ fn national_foundation_day() {
 fn vernal_equinox_day() {
     let name = "春分の日";
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (1949, 3, 21),
@@ -212,7 +214,7 @@ fn marine_day() {
         assert_holiday!(y, 7, 20, name);
     });
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (2003, 7, 21),
@@ -252,7 +254,7 @@ fn respect_for_the_aged_day() {
         assert_holiday!(y, 9, 15, name);
     });
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (2003, 9, 15),
@@ -279,7 +281,7 @@ fn respect_for_the_aged_day() {
 fn autumnal_equinox_holiday() {
     let name = "秋分の日";
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (1948, 9, 23),
@@ -365,7 +367,7 @@ fn sports_day() {
         assert_holiday!(y, 10, 10, name);
     });
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (2000, 10, 9),
@@ -422,7 +424,7 @@ fn birthday_of_heisei_emperor() {
 fn substitute_holiday() {
     let name = "振替休日";
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (1973, 4, 30),  // 天皇誕生日振替
@@ -512,7 +514,7 @@ fn substitute_holiday() {
 fn national_holiday() {
     let name = "国民の休日";
 
-    assert_holiday!(
+    assert_holidays!(
         name,
         vec![
             (1988, 5, 4),
