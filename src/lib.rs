@@ -17,12 +17,12 @@ pub use era::{era, Era};
 
 pub use holiday::holiday;
 
-/// # クレート単位の`Result`
+/// クレート単位の`Result`
 ///
 /// 失敗時は `KoyomiError` を返す
 pub type KoyomiResult<T> = Result<T, KoyomiError>;
 
-/// # クレート単位のエラーバリアント
+/// クレート単位のエラーバリアント
 #[derive(Debug)]
 pub enum KoyomiError {
     /// 妥当な日付ではない

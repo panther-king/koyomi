@@ -17,7 +17,7 @@ use super::{KoyomiError, KoyomiResult};
 use era;
 use holiday;
 
-/// # 曜日
+/// 曜日
 ///
 /// 月曜を週の始まりとする。
 /// [`chrono::Weekday`]から生成することもできる。
@@ -75,7 +75,7 @@ impl From<ChronoWeekday> for Weekday {
     }
 }
 
-/// # 日付
+/// 日付
 ///
 /// カレンダーのベースとなる構造体。
 /// 文字列または(年, 月, 日)から生成する。

@@ -49,7 +49,7 @@ pub fn era(date: &Date) -> Option<Era> {
     None
 }
 
-/// # 元号
+/// 元号
 ///
 /// https://ja.wikipedia.org/wiki/元号
 #[derive(Debug, Eq, PartialEq)]
