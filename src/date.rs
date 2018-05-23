@@ -1,4 +1,13 @@
-//! 日付
+//! # 日付
+//!
+//! カレンダーとして必要な情報を持つ。
+//!
+//! - 年
+//! - 月
+//! - 日
+//! - 曜日
+//! - 和暦
+//! - 祝祭日
 use std::cmp::Ordering;
 
 use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
@@ -8,6 +17,12 @@ use super::{KoyomiError, KoyomiResult};
 use era;
 use holiday;
 
+/// # 曜日
+///
+/// 月曜を週の始まりとする。
+/// [`chrono::Weekday`]から生成することもできる。
+///
+/// [chrono::Weekday]: https://docs.rs/chrono/0.4.0/chrono/enum.Weekday.html
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Weekday {
     Monday,
@@ -20,6 +35,16 @@ pub enum Weekday {
 }
 
 impl Weekday {
+    /// 曜日の日本語表現を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Weekday;
+    ///
+    /// let w = Weekday::Monday;
+    /// assert_eq!(w.japanese(), '月');
+    /// ```
     pub fn japanese(&self) -> char {
         match *self {
             Monday => '月',
@@ -34,6 +59,9 @@ impl Weekday {
 }
 
 impl From<ChronoWeekday> for Weekday {
+    /// [`chrono::Weekday`]から対応する曜日を生成する
+    ///
+    /// [`chrono::Weekday`]: https://docs.rs/chrono/0.4.0/chrono/enum.Weekday.html
     fn from(weekday: ChronoWeekday) -> Self {
         match weekday {
             ChronoWeekday::Mon => Monday,
@@ -47,6 +75,10 @@ impl From<ChronoWeekday> for Weekday {
     }
 }
 
+/// # 日付
+///
+/// カレンダーのベースとなる構造体。
+/// 文字列または(年, 月, 日)から生成する。
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Date {
     year: i32,
@@ -56,6 +88,23 @@ pub struct Date {
 }
 
 impl Date {
+    /// 文字列からオブジェクトを生成する
+    /// 文字列は `Y-m-d` か `Y/m/d` 形式のみ受け付ける
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::parse("2018-01-01");
+    /// assert!(date.is_ok());
+    ///
+    /// let date = Date::parse("2018/01/01");
+    /// assert!(date.is_ok());
+    ///
+    /// let date = Date::parse("2018-01-32");
+    /// assert!(date.is_err());
+    /// ```
     pub fn parse(fmt: &str) -> KoyomiResult<Self> {
         NaiveDate::parse_from_str(fmt, "%Y-%m-%d")
             .or(NaiveDate::parse_from_str(fmt, "%Y/%m/%d"))
@@ -63,37 +112,131 @@ impl Date {
             .map(|d| Date::from_chrono(d))
     }
 
+    /// 年月日からオブジェクトを生成する
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1);
+    /// assert!(date.is_ok());
+    ///
+    /// let date = Date::from_ymd(2018, 13, 1);
+    /// assert!(date.is_err());
+    /// ```
     pub fn from_ymd(year: i32, month: u32, day: u32) -> KoyomiResult<Self> {
         let ymd = format!("{:<4}-{:<02}-{:<02}", year, month, day);
         Date::parse(&ymd)
     }
 
+    /// 「日」を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 31).unwrap();
+    /// assert_eq!(date.day(), 31);
+    /// ```
     pub fn day(&self) -> u32 {
         self.day
     }
 
+    /// 「元号」を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1).unwrap();
+    /// assert_eq!(date.era().unwrap().name(), "平成");
+    /// ```
     pub fn era(&self) -> Option<era::Era> {
         era::era(self)
     }
 
+    /// 「祝祭日」を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1).unwrap();
+    /// assert_eq!(date.holiday().unwrap(), "元日");
+    ///
+    /// let date = Date::from_ymd(2018, 1, 2).unwrap();
+    /// assert_eq!(date.holiday(), None);
+    /// ```
     pub fn holiday(&self) -> Option<String> {
         holiday::holiday(self)
     }
 
+    /// 「月」を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 12, 1).unwrap();
+    /// assert_eq!(date.month(), 12);
+    /// ```
     pub fn month(&self) -> u32 {
         self.month
     }
 
+    /// 日付間の期間が何日あるかを返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let from = Date::from_ymd(2018, 1, 1).unwrap();
+    /// let until = Date::from_ymd(2018, 12, 31).unwrap();
+    /// assert_eq!(until.num_days(&from), 364);
+    ///
+    /// // うるう年
+    /// let from = Date::from_ymd(2016, 1, 1).unwrap();
+    /// let until = Date::from_ymd(2016, 12, 31).unwrap();
+    /// assert_eq!(until.num_days(&from), 365);
+    /// ```
     pub fn num_days(&self, date: &Date) -> i64 {
         let min = NaiveDate::from_ymd(self.year, self.month, self.day);
         let sub = NaiveDate::from_ymd(date.year(), date.month(), date.day());
         min.signed_duration_since(sub).num_days()
     }
 
+    /// 日付の文字列表現を返す
+    /// フォーマットは `Y-m-d` 形式となる
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1).unwrap();
+    /// assert_eq!(date.to_string(), "2018-01-01");
+    /// ```
     pub fn to_string(&self) -> String {
         format!("{:<4}-{:<02}-{:<02}", self.year, self.month, self.day)
     }
 
+    /// 翌日の日付を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1).unwrap();
+    /// let tomorrow = date.tomorrow();
+    /// assert_eq!(tomorrow.unwrap().to_string(), "2018-01-02");
+    /// ```
     pub fn tomorrow(&self) -> KoyomiResult<Self> {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .succ_opt()
@@ -101,14 +244,45 @@ impl Date {
             .map(|d| Date::from_chrono(d))
     }
 
+    /// 「曜日」を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::{Date, Weekday};
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1).unwrap();
+    /// assert_eq!(date.weekday(), &Weekday::Monday);
+    /// ```
     pub fn weekday(&self) -> &Weekday {
         &self.weekday
     }
 
+    /// 「年」を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1).unwrap();
+    /// assert_eq!(date.year(), 2018);
+    /// ```
     pub fn year(&self) -> i32 {
         self.year
     }
 
+    /// 前日の日付を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Date;
+    ///
+    /// let date = Date::from_ymd(2018, 1, 1).unwrap();
+    /// let yesterday = date.yesterday();
+    /// assert_eq!(yesterday.unwrap().to_string(), "2017-12-31");
+    /// ```
     pub fn yesterday(&self) -> KoyomiResult<Self> {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .pred_opt()
@@ -116,6 +290,7 @@ impl Date {
             .map(|d| Date::from_chrono(d))
     }
 
+    /// `chrono`から日付オブジェクトを生成する
     fn from_chrono(date: NaiveDate) -> Self {
         Date {
             year: date.year(),
@@ -127,6 +302,7 @@ impl Date {
 }
 
 impl Ord for Date {
+    /// 日付オブジェクト同士を比較可能にする
     fn cmp(&self, other: &Date) -> Ordering {
         match self.year.cmp(&other.year) {
             Ordering::Equal => match self.month.cmp(&other.month) {
@@ -139,6 +315,7 @@ impl Ord for Date {
 }
 
 impl PartialOrd for Date {
+    /// 日付オブジェクト同士を比較可能にする
     fn partial_cmp(&self, other: &Date) -> Option<Ordering> {
         Some(self.cmp(&other))
     }

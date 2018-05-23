@@ -1,55 +1,28 @@
-//! 祝祭日定義
+//! # 祝祭日定義
+//!
+//! 日本の法律で祝日・祭日となる日と、
+//! 指定日が祝祭日にあたるかどうかを判定する
+//! 関数を定義する。
 use KoyomiResult;
 use date::{Date, Weekday};
 
-const AUTUMNAL_EQUINOX_DAYS: [[u32; 4]; 7] = [
-    [23, 24, 24, 24], // 1900-1919
-    [23, 23, 24, 24], // 1920-1947
-    [23, 23, 23, 24], // 1948-1979
-    [23, 23, 23, 23], // 1980-2011
-    [22, 23, 23, 23], // 2012-2043
-    [22, 22, 23, 23], // 2044-2075
-    [22, 22, 22, 23], // 2076-2099
-];
-
-const HOLIDAYS: [(&str, i32, u32, u32, Option<i32>); 16] = [
-    ("元日", 1948, 1, 1, None),
-    ("成人の日", 1948, 1, 15, Some(1999)),
-    ("建国記念日", 1967, 2, 11, None),
-    ("天皇誕生日", 1948, 4, 29, Some(1988)),
-    ("みどりの日", 1989, 4, 29, Some(2006)),
-    ("昭和の日", 2007, 4, 29, None),
-    ("憲法記念日", 1948, 5, 3, None),
-    ("みどりの日", 2007, 5, 4, None),
-    ("こどもの日", 1948, 5, 5, None),
-    ("海の日", 1996, 7, 20, Some(2002)),
-    ("山の日", 2016, 8, 11, None),
-    ("敬老の日", 1966, 9, 15, Some(2002)),
-    ("体育の日", 1966, 10, 10, Some(1999)),
-    ("文化の日", 1948, 11, 3, None),
-    ("勤労感謝の日", 1948, 11, 23, None),
-    ("天皇誕生日", 1989, 12, 23, None),
-];
-
-const VERNAL_EQUINOX_DAYS: [[u32; 4]; 7] = [
-    [21, 21, 21, 22], // 1900-1923
-    [21, 21, 21, 21], // 1924-1959
-    [20, 21, 21, 21], // 1960-1991
-    [20, 20, 21, 21], // 1992-2023
-    [20, 20, 20, 21], // 2024-2055
-    [20, 20, 20, 20], // 2056-2091
-    [19, 20, 20, 20], // 2092-2099
-];
-
-const HOLIDAY_FROM: i32 = 1948;
-
-const NATION_FROM: i32 = 1986;
-
-const ONE_WEEK: u32 = 7;
-
-const SUBSTITUTE_FROM: i32 = 1973;
-
+/// 指定日が祝祭日にあたるかどうかを判定する
+///
+/// # Examples
+///
+/// ```rust
+/// use koyomi;
+///
+/// let date = koyomi::Date::from_ymd(2018, 1, 1).unwrap();
+/// let holiday = koyomi::holiday(&date);
+/// assert_eq!(holiday.unwrap(), "元日");
+///
+/// let date = koyomi::Date::from_ymd(2018, 1, 2).unwrap();
+/// let holiday = koyomi::holiday(&date);
+/// assert_eq!(holiday, None);
+/// ```
 pub fn holiday(date: &Date) -> Option<String> {
+    // 規定の祝祭日
     defined_holiday(date)
         // 振替休日(前日が日曜で祝日)
         .or(substitute_holiday(date))
@@ -69,6 +42,64 @@ pub fn holiday(date: &Date) -> Option<String> {
         .or(national_holiday(date))
 }
 
+/// 秋分日
+/// @see https://ja.wikipedia.org/wiki/秋分の日
+const AUTUMNAL_EQUINOX_DAYS: [[u32; 4]; 7] = [
+    [23, 24, 24, 24], // 1900-1919
+    [23, 23, 24, 24], // 1920-1947
+    [23, 23, 23, 24], // 1948-1979
+    [23, 23, 23, 23], // 1980-2011
+    [22, 23, 23, 23], // 2012-2043
+    [22, 22, 23, 23], // 2044-2075
+    [22, 22, 22, 23], // 2076-2099
+];
+
+/// 国民の祝日
+/// @see https://ja.wikipedia.org/wiki/国民の祝日
+const HOLIDAYS: [(&str, i32, u32, u32, Option<i32>); 16] = [
+    ("元日", 1948, 1, 1, None),
+    ("成人の日", 1948, 1, 15, Some(1999)),
+    ("建国記念日", 1967, 2, 11, None),
+    ("天皇誕生日", 1948, 4, 29, Some(1988)),
+    ("みどりの日", 1989, 4, 29, Some(2006)),
+    ("昭和の日", 2007, 4, 29, None),
+    ("憲法記念日", 1948, 5, 3, None),
+    ("みどりの日", 2007, 5, 4, None),
+    ("こどもの日", 1948, 5, 5, None),
+    ("海の日", 1996, 7, 20, Some(2002)),
+    ("山の日", 2016, 8, 11, None),
+    ("敬老の日", 1966, 9, 15, Some(2002)),
+    ("体育の日", 1966, 10, 10, Some(1999)),
+    ("文化の日", 1948, 11, 3, None),
+    ("勤労感謝の日", 1948, 11, 23, None),
+    ("天皇誕生日", 1989, 12, 23, None),
+];
+
+/// 春分日
+/// @see https://ja.wikipedia.org/wiki/春分の日
+const VERNAL_EQUINOX_DAYS: [[u32; 4]; 7] = [
+    [21, 21, 21, 22], // 1900-1923
+    [21, 21, 21, 21], // 1924-1959
+    [20, 21, 21, 21], // 1960-1991
+    [20, 20, 21, 21], // 1992-2023
+    [20, 20, 20, 21], // 2024-2055
+    [20, 20, 20, 20], // 2056-2091
+    [19, 20, 20, 20], // 2092-2099
+];
+
+/// 国民の祝日に関する法律が施行された年
+const HOLIDAY_FROM: i32 = 1948;
+
+/// 国民の休日に関する法律が施行された年
+const NATION_FROM: i32 = 1986;
+
+/// 1週間は何日か？(指定日が何週目にあたるかの判定で利用する)
+const ONE_WEEK: u32 = 7;
+
+/// 振替休日に関する法律が施行された年
+const SUBSTITUTE_FROM: i32 = 1973;
+
+/// 指定日が秋分の日かどうかを判定する
 fn autumnal_equinox_day(date: &Date) -> Option<String> {
     if date.year() < HOLIDAY_FROM {
         return None;
@@ -103,6 +134,7 @@ fn autumnal_equinox_day(date: &Date) -> Option<String> {
     }
 }
 
+/// 指定日が定義された祝祭日かどうかを判定する
 fn defined_holiday(date: &Date) -> Option<String> {
     if date.year() < HOLIDAY_FROM {
         return None;
@@ -119,14 +151,19 @@ fn defined_holiday(date: &Date) -> Option<String> {
         .map(|h| h.0.into())
 }
 
+/// 指定日が第2週にあたるかどうかを判定する
+/// 第2週の月曜日となった、成人の日・体育の日を判定するために利用する
 fn is_second_week(day: u32) -> bool {
     (day / ONE_WEEK == 2 && day % ONE_WEEK == 0) || (day / ONE_WEEK == 1 && day % ONE_WEEK > 0)
 }
 
+/// 指定日が第3週にあたるかどうかを判定する
+/// 第3週の月曜日となった、海の日・敬老の日を判定するために利用する
 fn is_third_week(day: u32) -> bool {
     (day / ONE_WEEK == 3 && day % ONE_WEEK == 0) || (day / ONE_WEEK == 2 && day % ONE_WEEK >= 1)
 }
 
+/// 指定日が国民の休日にあたるかどうかを判定する
 fn national_holiday(date: &Date) -> Option<String> {
     if date.year() < NATION_FROM {
         return None;
@@ -157,6 +194,10 @@ fn national_holiday(date: &Date) -> Option<String> {
     Some("国民の休日".into())
 }
 
+/// 指定日が振替休日かどうかを判定する
+///
+/// 日曜が祝日の場合は、その次の平日が振替休日となるため、
+/// 遡って判定する必要がある(月曜日とは限らない)
 fn substitute(yesterday: KoyomiResult<Date>) -> Option<String> {
     match yesterday {
         Err(_) => None,
@@ -173,6 +214,7 @@ fn substitute(yesterday: KoyomiResult<Date>) -> Option<String> {
     }
 }
 
+/// 指定日が振替休日かどうかを判定する
 fn substitute_holiday(date: &Date) -> Option<String> {
     if date.year() < SUBSTITUTE_FROM {
         None
@@ -181,6 +223,7 @@ fn substitute_holiday(date: &Date) -> Option<String> {
     }
 }
 
+/// 指定日が年ごとに変動する祝日かどうかを判定する
 fn variable_holiday(index: usize, date: &Date, week: impl Fn(u32) -> bool) -> Option<String> {
     if date.month() != HOLIDAYS[index].2 {
         return None;
@@ -201,6 +244,7 @@ fn variable_holiday(index: usize, date: &Date, week: impl Fn(u32) -> bool) -> Op
     Some(HOLIDAYS[index].0.into())
 }
 
+/// 指定日が春分の日かどうかを判定する
 fn vernal_equinox_day(date: &Date) -> Option<String> {
     if date.year() <= HOLIDAY_FROM {
         return None;

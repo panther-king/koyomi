@@ -1,7 +1,21 @@
 //! # カレンダー
+//!
+//! 指定期間の日付を持つカレンダーとユーティリティ関数
 use super::{KoyomiError, KoyomiResult};
 use date::Date;
 
+/// 指定年月が何日まであるかを返す
+///
+/// # Examples
+///
+/// ```rust
+/// use koyomi::num_days;
+///
+/// assert_eq!(num_days(2018, 1), 31);
+///
+/// // うるう年
+/// assert_eq!(num_days(2016, 2), 29);
+/// ```
 pub fn num_days(year: i32, month: u32) -> u32 {
     match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
@@ -15,6 +29,16 @@ pub fn num_days(year: i32, month: u32) -> u32 {
     }
 }
 
+/// うるう年かどうかを判定する
+///
+/// # Examples
+///
+/// ```rust
+/// use koyomi::is_leap;
+///
+/// assert_eq!(is_leap(2016), true);
+/// assert_eq!(is_leap(2018), false);
+/// ```
 pub fn is_leap(year: i32) -> bool {
     // @see https://www.nao.ac.jp/faq/a0306.html
     if year % 4 != 0 {
@@ -26,6 +50,9 @@ pub fn is_leap(year: i32) -> bool {
     }
 }
 
+/// # カレンダー
+///
+/// 指定期間の日付を生成することができる
 #[derive(Debug)]
 pub struct Calendar {
     from: Date,
@@ -33,6 +60,23 @@ pub struct Calendar {
 }
 
 impl Calendar {
+    /// カレンダーオブジェクトを生成する
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::{Calendar, Date};
+    ///
+    /// let from = Date::from_ymd(2018, 1, 1).unwrap();
+    /// let until = Date::from_ymd(2018, 12, 31).unwrap();
+    /// let cal = Calendar::new(from, until);
+    /// assert!(cal.is_ok());
+    ///
+    /// let from = Date::from_ymd(2018, 12, 31).unwrap();
+    /// let until = Date::from_ymd(2018, 1, 1).unwrap();
+    /// let cal = Calendar::new(from, until);
+    /// assert!(cal.is_err());
+    /// ```
     pub fn new(from: Date, until: Date) -> KoyomiResult<Self> {
         if until.num_days(&from) <= 0 {
             Err(KoyomiError::InvalidTerm(from, until))
@@ -41,6 +85,7 @@ impl Calendar {
         }
     }
 
+    /// カレンダーを生成するためのビルダーを返す
     pub fn build<'a>() -> CalendarBuilder<'a> {
         CalendarBuilder {
             from: None,
@@ -49,6 +94,18 @@ impl Calendar {
         }
     }
 
+    /// 開始日の文字列表現を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::{Calendar, Date};
+    ///
+    /// let from = Date::from_ymd(2018, 1, 1).unwrap();
+    /// let until = Date::from_ymd(2018, 12, 31).unwrap();
+    /// let cal = Calendar::new(from, until).unwrap();
+    /// assert_eq!(cal.from(), "2018-01-01");
+    /// ```
     pub fn from(&self) -> String {
         self.from.to_string()
     }
@@ -73,11 +130,32 @@ impl Calendar {
         cal
     }
 
+    /// 終了日の文字列表現を返す
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::{Calendar, Date};
+    ///
+    /// let from = Date::from_ymd(2018, 1, 1).unwrap();
+    /// let until = Date::from_ymd(2018, 12, 31).unwrap();
+    /// let cal = Calendar::new(from, until).unwrap();
+    /// assert_eq!(cal.until(), "2018-12-31");
+    /// ```
     pub fn until(&self) -> String {
         self.until.to_string()
     }
 }
 
+/// # カレンダー用ビルダー
+///
+/// カレンダーの範囲指定には複数のユースケースがあるので、
+/// それぞれに応じたカレンダーを生成するためのビルダー
+///
+/// 1. 特定年月のカレンダー
+/// 2. 特定年のカレンダー
+/// 3. 期間を年月で指定したカレンダー
+/// 4. 期間を年で指定したカレンダー
 #[derive(Debug)]
 pub struct CalendarBuilder<'a> {
     from: Option<&'a str>,
@@ -86,6 +164,22 @@ pub struct CalendarBuilder<'a> {
 }
 
 impl<'a> CalendarBuilder<'a> {
+    /// カレンダーオブジェクトを生成する
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Calendar;
+    ///
+    /// let builder = Calendar::build().single("2018").finalize();
+    /// assert!(builder.is_ok());
+    ///
+    /// let builder = Calendar::build().from("2018").until("2019").finalize();
+    /// assert!(builder.is_ok());
+    ///
+    /// let builder = Calendar::build().from("January").finalize();
+    /// assert!(builder.is_err());
+    /// ```
     pub fn finalize(&self) -> KoyomiResult<Calendar> {
         if let Some(single) = self.single {
             self.single_calendar(single)
@@ -96,21 +190,52 @@ impl<'a> CalendarBuilder<'a> {
         }
     }
 
+    /// 期間の始まりを指定する
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Calendar;
+    ///
+    /// let mut builder = Calendar::build();
+    /// builder.from("2018");
+    /// ```
     pub fn from(mut self, from: &'a str) -> Self {
         self.from = Some(from);
         self
     }
 
+    /// 単一年または単一年月を指定する
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Calendar;
+    ///
+    /// let mut builder = Calendar::build();
+    /// builder.single("2018-01");
+    /// ```
     pub fn single(mut self, single: &'a str) -> Self {
         self.single = Some(single);
         self
     }
 
+    /// 期間の終わりを指定する
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use koyomi::Calendar;
+    ///
+    /// let mut builder = Calendar::build();
+    /// builder.until("2018");
+    /// ```
     pub fn until(mut self, until: &'a str) -> Self {
         self.until = Some(until);
         self
     }
 
+    /// カレンダーの開始日を導出する
     fn date_from(&self) -> KoyomiResult<Date> {
         match self.from {
             None => Err(KoyomiError::NotEnough),
@@ -122,6 +247,7 @@ impl<'a> CalendarBuilder<'a> {
         }
     }
 
+    /// カレンダーの終了日を導出する
     fn date_until(&self) -> KoyomiResult<Date> {
         match self.until {
             None => Err(KoyomiError::NotEnough),
@@ -133,12 +259,14 @@ impl<'a> CalendarBuilder<'a> {
         }
     }
 
+    /// 指定月の末日を導出する
     fn end_of_month(&self, fmt: &str) -> KoyomiResult<Date> {
         let first = Date::parse(fmt)?;
         let (y, m) = (first.year(), first.month());
         Date::from_ymd(y, m, num_days(y, m))
     }
 
+    /// 単一年または単一年月からカレンダーオブジェクトを生成する
     fn single_calendar(&self, ym: &str) -> KoyomiResult<Calendar> {
         let splits = ym.split("-").collect::<Vec<_>>();
         match splits.len() {
