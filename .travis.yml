@@ -1,0 +1,9 @@
+language: rust
+rust:
+  - stable
+script:
+  - cargo build
+  - cargo test
+env:
+  global:
+    secure: MG1WDQsquRacm58PCm2ujtvDjSyi2yWajZ0auap2QolatVuww8w1/V58bJcU/CJkAj88rNNoXZ5oZYjqDEY+QVGxEEOL4p4pavf+b+0pDcRebc3t7QYJ7M/BZn4L714VJV6qVqnanr+UGj42pQ5PojSe1mbH84pkX6kCEDCQ4B1Jc0sPsThmr+WNWJGqVlkzRMmLCUk9AKgfeHxU9WZPtK0yLHKheJ04hcX+9q9/1yYEN1itQzg6+2Aq3GlFNLIpWVxeHFK18tSMk22qQjbCAQsj/pxph0bn+Jzwryr7URMDNvzVJvjgT2DazWRRXbxw5l74gLXaLkf/8E62U2FEAy9ixSOJUbFkwb+mG2GwKcxYMvz2Y8Qy2eLBTbnuxJ9kdMspccPQgF9XjSSyLs/3Efxec+tkTr9Y3oPLaqtp6MfZJTAkwsPe4WKcYonXfXHX/Pq6WE2+oxPRUMdJlRpL3i7TLYjz5vgFFcb1AmJBjrIclSrWFF6jFb45cD2ETLTzP4Ph61KHLChbbrIdQZ8bulxtCi6zU8AYgrZ3BnayizVBtZ1JoGhuZL1BGaUcGkxGnbRhBKOhDWEgnqHiYtGKqzz8V3pP9+ZR4PbcRwfsJBS0onunXIcOnB8bnJ9filo7Lmob9zL+gw4qFMK5Yki/WSdoMQSV9S3Bnwsgv5r6OHw=

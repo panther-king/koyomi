@@ -1,0 +1,13 @@
+[package]
+name = "koyomi"
+version = "0.1.0"
+authors = ["Taro Yamashita <taro.ymst@gmail.com>"]
+description = "Japanese calendar written in Rust"
+repository = "https://github.com/panther-king/koyomi"
+license-file = "LICENSE"
+readme = "README.md"
+keywords = ["Japanese", "calendar"]
+exclude = [".travis.yml"]
+
+[dependencies]
+chrono = "0.4.1"
