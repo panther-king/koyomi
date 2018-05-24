@@ -9,6 +9,7 @@
 //! - 和暦
 //! - 祝祭日
 use std::cmp::Ordering;
+use std::fmt;
 
 use chrono::{Datelike, NaiveDate, Weekday as ChronoWeekday};
 
@@ -301,6 +302,12 @@ impl Date {
     }
 }
 
+impl fmt::Display for Date {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
+    }
+}
+
 impl Ord for Date {
     /// 日付オブジェクト同士を比較可能にする
     fn cmp(&self, other: &Date) -> Ordering {
@@ -463,6 +470,13 @@ mod tests {
         let format = "2018-01-01";
         let date = Date::parse(format).unwrap();
         assert_eq!(date.to_string(), format);
+    }
+
+    #[test]
+    fn date_display() {
+        let format = "2018-01-01";
+        let date = Date::parse(format).unwrap();
+        assert_eq!(format!("{}", date), format);
     }
 
     #[test]
