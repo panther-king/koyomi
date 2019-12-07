@@ -5,8 +5,9 @@
 use date::Date;
 
 /// 明治以降の和暦
-const ERA: [(&str, i32, u32, u32, Option<(i32, u32, u32)>); 4] = [
-    ("平成", 1989, 1, 8, None),
+const ERA: [(&str, i32, u32, u32, Option<(i32, u32, u32)>); 5] = [
+    ("令和", 2019, 5, 1, None),
+    ("平成", 1989, 1, 8, Some((2019, 4, 30))),
     ("昭和", 1926, 12, 25, Some((1989, 1, 7))),
     ("大正", 1912, 7, 30, Some((1926, 12, 24))),
     ("明治", 1868, 1, 25, Some((1912, 7, 29))),
@@ -213,7 +214,7 @@ mod tests {
         let date = Date::parse("1989-01-08").unwrap();
         assert_eq!(era(&date).unwrap().name(), "平成");
 
-        let date = Date::parse("2018-04-01").unwrap();
+        let date = Date::parse("2019-04-30").unwrap();
         assert_eq!(era(&date).unwrap().name(), "平成");
     }
 
@@ -222,8 +223,8 @@ mod tests {
         let date = Date::parse("1989-01-08").unwrap();
         assert_eq!(era(&date).unwrap().year(), 1);
 
-        let date = Date::parse("2018-04-01").unwrap();
-        assert_eq!(era(&date).unwrap().year(), 30);
+        let date = Date::parse("2019-04-30").unwrap();
+        assert_eq!(era(&date).unwrap().year(), 31);
     }
 
     #[test]
@@ -231,8 +232,35 @@ mod tests {
         let date = Date::parse("1989-01-08").unwrap();
         assert_eq!(era(&date).unwrap().format(), "平成元年");
 
-        let date = Date::parse("2018-04-01").unwrap();
-        assert_eq!(era(&date).unwrap().format(), "平成30年");
+        let date = Date::parse("2019-04-30").unwrap();
+        assert_eq!(era(&date).unwrap().format(), "平成31年");
+    }
+    
+        #[test]
+    fn era_name_reiwa() {
+        let date = Date::parse("2019-05-01").unwrap();
+        assert_eq!(era(&date).unwrap().name(), "令和");
+
+        let date = Date::parse("2020-07-24").unwrap();
+        assert_eq!(era(&date).unwrap().name(), "令和");
+    }
+
+    #[test]
+    fn era_year_reiwa() {
+        let date = Date::parse("2019-05-01").unwrap();
+        assert_eq!(era(&date).unwrap().year(), 1);
+
+        let date = Date::parse("2020-07-24").unwrap();
+        assert_eq!(era(&date).unwrap().year(), 2);
+    }
+
+    #[test]
+    fn era_format_reiwa() {
+        let date = Date::parse("2019-05-01").unwrap();
+        assert_eq!(era(&date).unwrap().format(), "令和元年");
+
+        let date = Date::parse("2020-07-24").unwrap();
+        assert_eq!(era(&date).unwrap().format(), "令和2年");
     }
 
     #[test]
