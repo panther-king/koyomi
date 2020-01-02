@@ -235,8 +235,8 @@ mod tests {
         let date = Date::parse("2019-04-30").unwrap();
         assert_eq!(era(&date).unwrap().format(), "平成31年");
     }
-    
-        #[test]
+
+    #[test]
     fn era_name_reiwa() {
         let date = Date::parse("2019-05-01").unwrap();
         assert_eq!(era(&date).unwrap().name(), "令和");
