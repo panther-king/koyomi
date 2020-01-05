@@ -3,8 +3,8 @@
 //! 日本の法律で祝日・祭日となる日と、
 //! 指定日が祝祭日にあたるかどうかを判定する
 //! 関数を定義する。
-use KoyomiResult;
-use date::{Date, Weekday};
+use crate::KoyomiResult;
+use crate::{Date, Weekday};
 
 /// 指定日が祝祭日にあたるかどうかを判定する
 ///
