@@ -1,8 +1,8 @@
 //! # カレンダー
 //!
 //! 指定期間の日付を持つカレンダーとユーティリティ関数
-use super::{KoyomiError, KoyomiResult};
-use date::Date;
+use crate::{KoyomiError, KoyomiResult};
+use crate::Date;
 
 /// 指定年月が何日まであるかを返す
 ///
