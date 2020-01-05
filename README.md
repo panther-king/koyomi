@@ -27,7 +27,7 @@ Add `koyomi` as a dependency in your `Cargo.toml`
 
 ```toml
 [dependencies]
-koyomi = "0.1"
+koyomi = "0.3"
 ```
 
 Quick Example

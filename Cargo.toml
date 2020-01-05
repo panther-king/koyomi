@@ -1,6 +1,6 @@
 [package]
 name = "koyomi"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2018"
 authors = ["Taro Yamashita <taro.ymst@gmail.com>"]
 description = "Japanese calendar written in Rust"
