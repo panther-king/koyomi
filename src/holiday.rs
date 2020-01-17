@@ -362,14 +362,17 @@ mod tests {
     fn birthday_of_showa_emperor() {
         let name = "天皇誕生日";
 
+        let date = Date::from_ymd(1947, 4, 29).unwrap();
+        assert!(holiday(&date).is_none());
+
         let date = Date::from_ymd(1948, 4, 29).unwrap();
         assert_eq!(holiday(&date).unwrap(), name);
 
         let date = Date::from_ymd(1988, 4, 29).unwrap();
         assert_eq!(holiday(&date).unwrap(), name);
 
-        let date = Date::from_ymd(1947, 4, 29).unwrap();
-        assert!(holiday(&date).is_none());
+        let date = Date::from_ymd(1989, 4, 29).unwrap();
+        assert_ne!(holiday(&date).unwrap(), name);
     }
 
     #[test]
@@ -562,6 +565,12 @@ mod tests {
         assert_eq!(holiday(&date).unwrap(), name);
 
         let date = Date::from_ymd(1988, 12, 23).unwrap();
+        assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2018, 12, 23).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(2019, 12, 23).unwrap();
         assert!(holiday(&date).is_none());
     }
 
