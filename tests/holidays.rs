@@ -537,3 +537,11 @@ fn national_holiday() {
         ]
     );
 }
+
+#[test]
+fn spot_holiday() {
+    assert_holiday!(2019, 4, 30, "国民の休日");
+    assert_holiday!(2019, 5, 1, "新天皇即位日");
+    assert_holiday!(2019, 5, 2, "国民の休日");
+    assert_holiday!(2019, 10, 22, "即位礼正殿の儀");
+}
