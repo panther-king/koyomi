@@ -110,7 +110,7 @@ impl Date {
         NaiveDate::parse_from_str(fmt, "%Y-%m-%d")
             .or(NaiveDate::parse_from_str(fmt, "%Y/%m/%d"))
             .map_err(|_| KoyomiError::InvalidFormat(fmt.into()))
-            .map(|d| Date::from_chrono(d))
+            .map(|d| Date::from(d))
     }
 
     /// 年月日からオブジェクトを生成する
@@ -242,7 +242,7 @@ impl Date {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .succ_opt()
             .ok_or(KoyomiError::NoTomorrow(self.year, self.month, self.day))
-            .map(|d| Date::from_chrono(d))
+            .map(|d| Date::from(d))
     }
 
     /// 「曜日」を返す
@@ -288,11 +288,12 @@ impl Date {
         NaiveDate::from_ymd(self.year, self.month, self.day)
             .pred_opt()
             .ok_or(KoyomiError::NoYesterday(self.year, self.month, self.day))
-            .map(|d| Date::from_chrono(d))
+            .map(|d| Date::from(d))
     }
+}
 
-    /// `chrono`から日付オブジェクトを生成する
-    fn from_chrono(date: NaiveDate) -> Self {
+impl From<NaiveDate> for Date {
+    fn from(date: NaiveDate) -> Self {
         Date {
             year: date.year(),
             month: date.month(),
