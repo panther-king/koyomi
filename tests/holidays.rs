@@ -20,8 +20,7 @@ macro_rules! assert_holidays {
 
 fn years(from: i32) -> impl Iterator<Item = i32> {
     let current = chrono::Utc::now().year();
-
-    (from..=current)
+    from..=current
 }
 
 #[test]
