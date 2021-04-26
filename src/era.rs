@@ -264,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    fn era_unknonw() {
+    fn era_unknown() {
         let date = Date::parse("1868-01-24").unwrap();
         assert!(era(&date).is_none());
     }

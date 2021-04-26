@@ -40,6 +40,8 @@ pub fn holiday(date: &Date) -> Option<String> {
         .or(autumnal_equinox_day(date))
         // 国民の休日(前後が祝日の平日)
         .or(national_holiday(date))
+        // 年度ごとに発生するスポットの祝日
+        .or(spot_holiday(date))
 }
 
 /// 秋分日
@@ -72,7 +74,15 @@ const HOLIDAYS: [(&str, i32, u32, u32, Option<i32>); 16] = [
     ("体育の日", 1966, 10, 10, Some(1999)),
     ("文化の日", 1948, 11, 3, None),
     ("勤労感謝の日", 1948, 11, 23, None),
-    ("天皇誕生日", 1989, 12, 23, None),
+    ("天皇誕生日", 1989, 12, 23, Some(2018)),
+];
+
+/// 特定年のみ制定されるスポットの祝日
+const SPOT: [(&str, i32, u32, u32); 4] = [
+    ("国民の休日", 2019, 4, 30),
+    ("新天皇即位日", 2019, 5, 1),
+    ("国民の休日", 2019, 5, 2),
+    ("即位礼正殿の儀", 2019, 10, 22),
 ];
 
 /// 春分日
@@ -192,6 +202,15 @@ fn national_holiday(date: &Date) -> Option<String> {
     }
 
     Some("国民の休日".into())
+}
+
+/// 指定日がスポットの休日かどうかを判定する
+/// 祝日には、特定の年度だけ制定されるものもある
+fn spot_holiday(date: &Date) -> Option<String> {
+    SPOT.iter()
+        .filter(|t| t.1 == date.year() && t.2 == date.month() && t.3 == date.day())
+        .nth(0)
+        .map(|h| h.0.into())
 }
 
 /// 指定日が振替休日かどうかを判定する
@@ -343,14 +362,17 @@ mod tests {
     fn birthday_of_showa_emperor() {
         let name = "天皇誕生日";
 
+        let date = Date::from_ymd(1947, 4, 29).unwrap();
+        assert!(holiday(&date).is_none());
+
         let date = Date::from_ymd(1948, 4, 29).unwrap();
         assert_eq!(holiday(&date).unwrap(), name);
 
         let date = Date::from_ymd(1988, 4, 29).unwrap();
         assert_eq!(holiday(&date).unwrap(), name);
 
-        let date = Date::from_ymd(1947, 4, 29).unwrap();
-        assert!(holiday(&date).is_none());
+        let date = Date::from_ymd(1989, 4, 29).unwrap();
+        assert_ne!(holiday(&date).unwrap(), name);
     }
 
     #[test]
@@ -544,6 +566,12 @@ mod tests {
 
         let date = Date::from_ymd(1988, 12, 23).unwrap();
         assert!(holiday(&date).is_none());
+
+        let date = Date::from_ymd(2018, 12, 23).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(2019, 12, 23).unwrap();
+        assert!(holiday(&date).is_none());
     }
 
     #[test]
@@ -603,5 +631,16 @@ mod tests {
 
         let date = Date::from_ymd(1987, 5, 4).unwrap();
         assert_ne!(holiday(&date).unwrap(), name);
+    }
+
+    #[test]
+    fn special_holiday() {
+        let name = "新天皇即位日";
+
+        let date = Date::from_ymd(2019, 5, 1).unwrap();
+        assert_eq!(holiday(&date).unwrap(), name);
+
+        let date = Date::from_ymd(2018, 5, 1).unwrap();
+        assert!(holiday(&date).is_none());
     }
 }

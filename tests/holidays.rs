@@ -20,8 +20,7 @@ macro_rules! assert_holidays {
 
 fn years(from: i32) -> impl Iterator<Item = i32> {
     let current = chrono::Utc::now().year();
-
-    (from..=current)
+    from..=current
 }
 
 #[test]
@@ -63,6 +62,7 @@ fn coming_of_age_day() {
             (2016, 1, 11),
             (2017, 1, 9),
             (2018, 1, 8),
+            (2019, 1, 14),
         ]
     );
 }
@@ -153,6 +153,7 @@ fn vernal_equinox_day() {
             (2016, 3, 20),
             (2017, 3, 20),
             (2018, 3, 21),
+            (2019, 3, 21),
         ]
     );
 }
@@ -233,6 +234,7 @@ fn marine_day() {
             (2016, 7, 18),
             (2017, 7, 17),
             (2018, 7, 16),
+            (2019, 7, 15),
         ]
     );
 }
@@ -273,6 +275,7 @@ fn respect_for_the_aged_day() {
             (2016, 9, 19),
             (2017, 9, 18),
             (2018, 9, 17),
+            (2019, 9, 16),
         ]
     );
 }
@@ -355,6 +358,7 @@ fn autumnal_equinox_holiday() {
             (2016, 9, 22),
             (2017, 9, 23),
             (2018, 9, 23),
+            (2019, 9, 23),
         ]
     );
 }
@@ -389,6 +393,7 @@ fn sports_day() {
             (2016, 10, 10),
             (2017, 10, 9),
             (2018, 10, 8),
+            (2019, 10, 14),
         ]
     );
 }
@@ -415,7 +420,7 @@ fn labor_thanksgiving_day() {
 fn birthday_of_heisei_emperor() {
     let name = "天皇誕生日";
 
-    years(1989).for_each(|y| {
+    (1989..=2018).for_each(|y| {
         assert_holiday!(y, 12, 23, name);
     });
 }
@@ -506,6 +511,9 @@ fn substitute_holiday() {
             (2018, 4, 30),  // 昭和の日振替
             (2018, 9, 24),  // 秋分の日振替
             (2018, 12, 24), // 天皇誕生日振替
+            (2019, 5, 6),   // こどもの日振替
+            (2019, 8, 12),  // 山の日振替
+            (2019, 11, 4),  // 文化の日振替
         ]
     );
 }
@@ -536,4 +544,12 @@ fn national_holiday() {
             (2015, 9, 22),
         ]
     );
+}
+
+#[test]
+fn spot_holiday() {
+    assert_holiday!(2019, 4, 30, "国民の休日");
+    assert_holiday!(2019, 5, 1, "新天皇即位日");
+    assert_holiday!(2019, 5, 2, "国民の休日");
+    assert_holiday!(2019, 10, 22, "即位礼正殿の儀");
 }
