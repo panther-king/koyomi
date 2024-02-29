@@ -3,6 +3,8 @@ koyomi
 
 [![Build Status](https://travis-ci.org/panther-king/koyomi.svg?branch=master)](https://travis-ci.org/panther-king/koyomi) [![Crates.io](https://img.shields.io/crates/v/koyomi.svg)](https://crates.io/crates/koyomi) [![Crates.io](https://img.shields.io/crates/d/koyomi.svg)](https://crates.io/crates/koyomi) [![license](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/panther-king/koyomi/blob/master/LICENSE)
 
+__This library is no longer maintained. Please consider using [koyomi-rs](https://github.com/panther-king/koyomi-rs) instead.__
+
 This is a calendar for Japanese.
 
 About
